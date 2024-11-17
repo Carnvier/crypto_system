@@ -12,20 +12,24 @@ class Portfolio():
             p.write("")
 
     def close_position(self, username, asset, action):
+        profit = 0
+        user_found = False
+        asset_found = False
+
         with open('portfolio.txt', 'r+') as p:
             existing_data = p.readlines()
 
             for i, line in enumerate(existing_data):
                 user_name, i_action, holding, quantity, cost =  line.split(',')
-                amount, cost = float(amount), float(cost)
-                if username != user_name:
+                quantity, cost = float(quantity), float(cost)
+                if username != user_name.strip() and action != i_action.strip():
                     continue
 
                 user_found = True
-                if asset != holding:
+                if asset != holding.strip():
                     continue
                 asset_found = True
-                
+
                 if i_action.lower().startswith('b'):
                     current_cost = quantity * Asset.assets[asset]
                     profit = current_cost - cost                    
@@ -34,40 +38,42 @@ class Portfolio():
                     current_cost = quantity * Asset.assets[asset]
                     profit = cost - current_cost
 
-                total_earnings = cost+profit
+                total_earnings = cost + profit
+                print(total_earnings)
                 
-                del existing_data[i]
+                existing_data.remove(line)
                 print(f"Removed {asset.title()} from your portfolio.")
+                break
 
 
             p.seek(0)
             p.writelines(existing_data)
             p.truncate
 
-        with open('accounts.txt', 'r+') as f:
-            existing_data = f.readlines()
-            for i, line in enumerate(existing_data):
-                user_name, password, balance =  line.split(',')
-                if username != user_name:
-                    continue
+            with open('accounts.txt', 'r+') as f:
+                existing_data = f.readlines()
+                for i, line in enumerate(existing_data):
+                    user_name, password, balance =  line.split(',')
+                    if username != user_name.strip():
+                        continue
 
-                user_found = True
+                    user_found = True
 
-                if user_found and profit > 0:
-                    print(f'Profit: {profit}')
-                    balance += total_earnings
-                    print(f"Updated balance: {balance}")
-                    existing_data[i] = f"{user_name},{password}, {balance}\n"
+                    if user_found and profit > 0:
+                        print(f'Profit: {profit}')
+                        balance += total_earnings
+                        print(f"Updated balance: {balance}")
+                        existing_data[i] = f"{user_name},{password}, {balance}\n"
+                    
+                    if user_found and profit < 0:
+                        print(f'Loss: {abs(profit)}')
+                        balance -= abs(profit)
+                        print(f"Updated balance: {balance}")
+                        existing_data[i] = f"{user_name},{password}, {balance}\n"
                 
-                if user_found and profit < 0:
-                    print(f'Loss: {abs(profit)}')
-                    balance -= abs(profit)
-                    print(f"Updated balance: {balance}")
-                    existing_data[i] = f"{user_name},{password}, {balance}\n"
-            
-            f.seek(0)
-            f.writelines(existing_data)
-            f.truncate()       
+                f.seek(0)
+                f.writelines(existing_data)
+                f.truncate()       
 
     def view_holding(self):
         for asset, quantity in self.portfolio.items():
@@ -258,4 +264,4 @@ class Portfolio():
             f.write(f"{date}, {username}, {action}, {asset}, {quantity}\n")
 
 a = Portfolio()
-a.close_position('cocinito', 'Gold', 'Sell')
+a.close_position('cocinito', 'Silver', 'Sell')
