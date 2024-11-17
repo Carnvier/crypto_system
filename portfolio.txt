@@ -1,4 +1,6 @@
 cocinito, buy, Gold, 152.0, 4256000.0
 cocinito, sell, Gold, 14.0, 392000.0
 cocinito, buy, Silver, 12.0, 240000.0
-cocinito, sell, Silver, 4, 80000
+cocinito, sell, Silver, 20.0, 400000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, sell, Bitcoin, 10.0, 720000.0
