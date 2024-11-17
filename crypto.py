@@ -1,4 +1,4 @@
-import getpass
+import getpass, os
 from datetime import datetime
 
 assets = {
@@ -7,6 +7,10 @@ assets = {
     "Gold": 28000,
     "Silver": 20000,
 }
+
+if not os.path.exists('portfolio.txt'):
+        with open('portfolio.txt', 'w') as p:
+            p.write("")
 
 portfolio = {}
 
@@ -17,7 +21,9 @@ def create_account():
     initial_deposit = float(getpass.getpass("Please enter your initial deposit: "))
 
     with open("accounts.txt", "a") as f:
-        f.write(f"{username}, \t{password}, \t{initial_deposit}\n")
+        f.write(f"{username}, {password}, {initial_deposit}\n")
+        f.truncate()
+
 
     print(f"Welcome {username}! You have a current balance of {initial_deposit}.")
 
@@ -34,76 +40,115 @@ def deposit_withdraw(username, amount, action):
                         print("Withdrawal failed insufficient funds!!!")
                     else:
                         initial_deposit = initial_deposit - amount
-                        existing_data[i] = f"{username}, \t{password}, \t{initial_deposit}"
+                        existing_data[i] = f"{username}, {password}, {initial_deposit}\n"
                         print(f"Withdrawal of {amount} successful! Your new balance is {initial_deposit}.")
                 elif action.lower() == 'deposit':
                     initial_deposit = initial_deposit + amount
-                    existing_data[i] = f"{username}, \t{password}, \t{initial_deposit}"
+                    existing_data[i] = f"{username}, {password}, {initial_deposit}\n"
                     print(f"Deposit of {amount} successful! Your new balance is {initial_deposit}.")   
                 else:
                     print(f"{action.title()} not found!")                  
+    
     with open("accounts.txt", "w") as f:
+        f.seek(0)
         for line in existing_data:
-            f.write(f'{line}\n') 
+            f.writelines(f'{line}') 
+        f.truncate()
 
 def view_assets(assets):
     print("Current assets:")
     for asset, value in assets.items():
         print(f"{asset:<10}: {value}")
 
-def buy_asset(username, asset, quantity):
-    global portfolio
-    user = False
+def buy_asset(username, asset, quantity, portfolio):
+    user_found = False
     quantity = int(quantity)
+    action = "buy"
+
     if asset not in assets:
         print("Asset not found in our portfolio.")
         return
-    else: 
-        asset_value  = assets[asset]
-        total_cost = asset_value * quantity
-        with open("accounts.txt", "r") as f:
-            existing_data = f.readlines()
-            for i, line in enumerate(existing_data):
-                if username in list(line.split(",")):
-                    user = True
-                    user_name, password, initial_deposit = line.split(",")
-                    balance = float(initial_deposit)
-                    if balance < total_cost:
-                        print("Insufficient funds for purchase.")
-                    elif balance >= total_cost:
-                        portfolio = {
-                            user_name : {
+    
+   
+    asset_value  = assets[asset]
+    total_cost = asset_value * quantity
+    with open("accounts.txt", "r") as f:
+        existing_data = f.readlines()
+
+        for i, line in enumerate(existing_data):
+            user_name, password, initial_deposit = line.split(",")
+
+            if username != user_name.strip():
+                continue
+
+            user_found = True
+            balance = float(initial_deposit)
+            if balance < total_cost:
+                print("Insufficient funds for purchase.")
+                return
+            
+            with open('portfolio.txt', 'r+') as p:
+                current_data = p.readlines()
+                asset_found = False
+
+                for j, dic in enumerate(current_data):
+                    if asset in dic and user_found and action in dic:
+                        asset_found = True
+                        c_quantity, c_cost = map(float, dic.split(',')[3:5])
+                        total_quantity = c_quantity + quantity
+                        new_total_cost = c_cost + total_cost
+                        portfolio= {
+                            username:{
+                                action:{
+                                    asset:{ 
+                                        'quantity': total_quantity,
+                                        'total_cost': new_total_cost
+                                    }
+                                }
+                            }
+                        }
+                        current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
+                
+                if  not asset_found:
+                    portfolio = {
+                        username : {
+                            action:{
                                 asset: {
                                     'quantity': quantity, 
-                                    'price': assets[asset], 
                                     'total_cost': total_cost
                                 }
                             }
                         }
-                        balance = balance - total_cost
-                        existing_data[i] = f"{username.strip()}, \t{password.strip()}, \t{balance}"
-                        print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
-                        print(f"{username.title()} Buy Transaction Summary:")
-                        asset_details = portfolio[username][asset]
-                        print (f"{asset} {asset_details['quantity']} {asset_details['price']} {asset_details['total_cost']}")
-                        with open('portfolio.txt', 'w') as p:
-                            p.write(f"{username}, {asset}, {asset_details['quantity']}, {asset_details['price']}, {asset_details['total_cost']}")
-                    break
-        with open("accounts.txt", "w") as f:
-            for line in existing_data:
-                f.write(f'{line}') 
-        
-        if not user:
+                    }
+                    data = f"{username}, {action}, {asset}, {quantity}, {total_cost}\n"
+                    current_data.append(data)
+                    print("ichoooooo")
+
+                p.seek(0)
+                p.writelines(current_data)
+                p.truncate()
+
+                balance = balance - total_cost
+                existing_data[i] = f"{username.strip()}, \t{password.strip()}, \t{balance}\n"
+                with open("accounts.txt", "w") as f:
+                    f.writelines(existing_data) 
+
+                print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
+                print(f"{username.title()} Buy Transaction Summary:")
+                print (f"{asset} {quantity} {asset_value} {total_cost}")
+                return portfolio
+                    
+        if not user_found:
             print(f"{username.title()} not found!")
-    return portfolio
+        return portfolio
                         
 
 
 
-def sell_asset(username, asset, quantity):
-    global portfolio
+def sell_asset(username, asset, quantity, portfolio):
     user_found = False
     quantity = int(quantity)
+    action = "sell"
 
     if asset not in assets:
         print("Asset not found in our portfolio.")
@@ -114,9 +159,12 @@ def sell_asset(username, asset, quantity):
     with open("accounts.txt", "r") as f:
         existing_data = f.readlines()
 
-    for i, line in enumerate(existing_data):
-        user_name, password, initial_deposit = line.split(",")
-        if username in user_name.strip():
+        for i, line in enumerate(existing_data):
+            user_name, password, initial_deposit = line.split(",")
+
+            if username != user_name.strip():
+                continue
+            
             user_found = True
             balance = float(initial_deposit)
             if balance < total_cost:
@@ -129,54 +177,68 @@ def sell_asset(username, asset, quantity):
                 asset_found = False
 
                 for j, dic in enumerate(current_data):
-                    if asset in dic and user_found:
+                    if asset in dic and user_found and action in dic:
                         asset_found = True
-                        c_quantity, c_cost = map(float, dic.split(',')[2:4])
+                        c_quantity, c_cost = map(float, dic.split(',')[3:5])
                         total_quantity = c_quantity + quantity
                         new_total_cost = c_cost + total_cost
                         portfolio= {
                             username:{
-                                asset: {
-                                    'quantity': total_quantity,
-                                    'total_cost': new_total_cost
-                                }
-                            }
-                        }
-                        current_data[j] = f"{user_name}, {asset}, {total_quantity}, {new_total_cost}"
-
-                        if  not asset_found:
-                            portfolio = {
-                                username : {
+                                action:{
                                     asset: {
-                                        'quantity': quantity, 
-                                        'total_cost': total_cost
+                                        'quantity': total_quantity,
+                                        'total_cost': new_total_cost
                                     }
                                 }
                             }
-                            data = f"{username}, {asset},{quantity}, {total_cost}"
-                            current_data.append(data)
+                        }
+                        current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
+
+                if not asset_found and user_found :
+                    portfolio = {
+                        username : {
+                            action:{
+                                asset: {
+                                    'quantity': quantity, 
+                                    'total_cost': total_cost
+                                }
+                            }
+                        }
+                    }
+                    data = f"{username}, {action}, {asset}, {quantity}, {total_cost}\n"
+                    current_data.append(data)
+                    
                             
-                        p.seek(0)
-                        p.writelines(current_data)
-                        p.truncate()
+                p.seek(0)
+                p.writelines(current_data)
+                p.truncate()
 
-                        balance = balance + total_cost
-                        existing_data[i] = f"{username.strip()}, \t{password.strip()}, \t{balance}"
-                        with open("accounts.txt", "w") as f:
-                            f.writelines(existing_data) 
+                balance = balance - total_cost
+                existing_data[i] = f"{username.strip()}, {password.strip()}, {balance}\n"
+                with open("accounts.txt", "w") as f:
+                    f.writelines(existing_data) 
 
-                        print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
-                        print(f"{username.title()} Sell Transaction Summary:")
-                        print (f"{asset} {quantity} {asset_value} {total_cost}")
-                        break
-        
+                print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
+                print(f"{username.title()} Sell Transaction Summary:")
+                print (f"{asset} {quantity} {asset_value} {total_cost}")
+                return portfolio
+                    
         if not user_found:
             print(f"{username.title()} not found!")
         return portfolio
 
-def view_portfolio(username):
+def view_portfolio(username, portfolio):
+    with open('portfolio.txt', "r") as f:
+        existing_data = f.readlines()
+
     print(f"Portfolio for {username}:")
-    print(f"{portfolio['asset']} {portfolio['quantity']} {portfolio['total_cost']}")
+    for line in existing_data:
+        user_name, action, asset, quantity, cost = line.split(",")
+        if username != user_name.strip():
+            continue
+
+        print(f"{action.upper():<10} {asset:<10} {quantity:<10} {cost}", end="")
+        
 
 def save_transaction(username, asset, quantity, action):
     with open("transactions.txt", "a") as f:
@@ -184,7 +246,11 @@ def save_transaction(username, asset, quantity, action):
         f.write(f"{date}, {username}, {action}, {asset}, {quantity}\n")
 
 
+
 view_assets(assets)
-sell_asset("mil", "Gold", "4")
+sell_asset("cocinito", "Silver", "4", portfolio)
+# sell_asset("cocinito", "Gold", "2", portfolio)
+view_portfolio("cocinito", portfolio)
+save_transaction("cocinito", "Gold", "4", "sell")
 
 
