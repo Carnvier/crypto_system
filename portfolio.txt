@@ -1,9 +1,18 @@
+cocinito, sell, Bitcoin, 10.0, 720000.0
+cocinito, sell, Bitcoin, 10.0, 720000.0
+cocinito, sell, Bitcoin, 10.0, 720000.0
+cocinito, sell, Gold, 10.0, 720000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
-cinito, sell, Bitcoin, 10.0, 720000.0
-inito, sell, Bitcoin, 10.0, 720000.0
-
-inito, sell, Bitcoin, 10.0, 720000.0
-
-inito, sell, Bitcoin, 10.0, 720000.0
-
-inito, sell, Bitcoin, 10.0, 720000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
+cocinito, buy, Ethereum, 20.0, 540000.0
