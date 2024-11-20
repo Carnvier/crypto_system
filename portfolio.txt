@@ -16,3 +16,4 @@ cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
+

@@ -90,7 +90,7 @@ class Portfolio():
 
             print(f"{action.upper():<10} {asset:<10} {quantity:<10} {cost}", end="")
     
-    def buy_asset(self, username, asset, quantity, portfolio):
+    def buy_asset(self, username, asset, quantity):
         user_found = False
         quantity = int(quantity)
         action = "buy"
@@ -127,7 +127,7 @@ class Portfolio():
                             c_quantity, c_cost = map(float, dic.split(',')[3:5])
                             total_quantity = c_quantity + quantity
                             new_total_cost = c_cost + total_cost
-                            portfolio= {
+                            self.portfolio= {
                                 username:{
                                     action:{
                                         asset:{ 
@@ -140,7 +140,7 @@ class Portfolio():
                             current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
                     
                     if  not asset_found:
-                        portfolio = {
+                        self.portfolio = {
                             username : {
                                 action:{
                                     asset: {
@@ -166,16 +166,16 @@ class Portfolio():
                     print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
                     print(f"{username.title()} Buy Transaction Summary:")
                     print (f"{asset} {quantity} {asset_value} {total_cost}")
-                    return portfolio
+                    return self.portfolio
                         
             if not user_found:
                 print(f"{username.title()} not found!")
-            return portfolio
+            return self.portfolio
                         
 
 
 
-    def sell_asset(self, username, asset, quantity, portfolio):
+    def sell_asset(self, username, asset, quantity):
         user_found = False
         quantity = int(quantity)
         action = "sell"
@@ -212,7 +212,7 @@ class Portfolio():
                             c_quantity, c_cost = map(float, dic.split(',')[3:5])
                             total_quantity = c_quantity + quantity
                             new_total_cost = c_cost + total_cost
-                            portfolio= {
+                            self.portfolio= {
                                 username:{
                                     action:{
                                         asset: {
@@ -225,7 +225,7 @@ class Portfolio():
                             current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
 
                     if not asset_found and user_found :
-                        portfolio = {
+                        self.portfolio = {
                             username : {
                                 action:{
                                     asset: {
@@ -250,11 +250,11 @@ class Portfolio():
                     print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
                     print(f"{username.title()} Sell Transaction Summary:")
                     print (f"{asset} {quantity} {asset_value} {total_cost}")
-                    return 
+                    return self.portfolio
                         
             if not user_found:
                 print(f"{username.title()} not found!")
-            return 
+            return self.portfolio
 
     def save_transaction(self, username, asset, quantity, action):
         with open("transactions.txt", "a") as f:

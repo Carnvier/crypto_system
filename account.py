@@ -33,7 +33,7 @@ class Account():
         existing_data[i] = data
         print(f"Withdrawal of {amount} successful! Your new balance is {self.balance}.")
 
-    def update_balance(self):
+    def update_balance(self, action, amount):
         action = input("Deposit or Withdraw: ")
         amount = float(input("Please enter amount: "))
         
