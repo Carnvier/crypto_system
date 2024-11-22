@@ -1,12 +1,12 @@
 import os
 from datetime import datetime
-import Asset
+import asset as ast
 
-assets = Asset.assets
+
 class Portfolio():
     def __init__(self):
         self.portfolio = {}
-
+        self.assets = ast.assets
     if not os.path.exists('portfolio.txt'):
         with open('portfolio.txt', 'w') as p:
             p.write("")
@@ -31,10 +31,10 @@ class Portfolio():
                 asset_found = True
 
                 if i_action.strip().lower().startswith('b'):
-                    current_cost = quantity * Asset.assets[asset]
+                    current_cost = quantity * self.assets[asset]
                     profit = current_cost - cost                    
                 elif i_action.strip().lower().startswith('s'):
-                    current_cost = quantity * Asset.assets[asset]
+                    current_cost = quantity * self.assets[asset]
                     profit = cost - current_cost
                 else:
                     print("Action not found")
@@ -78,16 +78,13 @@ class Portfolio():
 
 
 
-    def view_holdings(self, username):
-        with open('portfolio.txt', "r") as f:
-            existing_data = f.readlines()
-
+    def view_holdings(self, username, data):
         print(f"Portfolio for {username}:")
-        for line in existing_data:
+        for line in data:
             user_name, action, asset, quantity, cost = line.split(",")
             if username != user_name.strip():
                 continue
-
+                
             print(f"{action.upper():<10} {asset:<10} {quantity:<10} {cost}", end="")
     
     def buy_asset(self, username, asset, quantity):
@@ -95,12 +92,12 @@ class Portfolio():
         quantity = int(quantity)
         action = "buy"
 
-        if asset not in assets:
+        if asset not in self.assets:
             print("Asset not found in our portfolio.")
             return
         
     
-        asset_value  = assets[asset]
+        asset_value  = self.assets[asset]
         total_cost = asset_value * quantity
         with open("accounts.txt", "r") as f:
             existing_data = f.readlines()
@@ -180,11 +177,11 @@ class Portfolio():
         quantity = int(quantity)
         action = "sell"
 
-        if asset not in assets:
+        if asset not in self.assets:
             print("Asset not found in our portfolio.")
             return
         
-        asset_value  = assets[asset]
+        asset_value  = self.assets[asset]
         total_cost = asset_value * quantity
         with open("accounts.txt", "r") as f:
             existing_data = f.readlines()

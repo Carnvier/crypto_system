@@ -2,7 +2,7 @@ import getpass
 
 class Account():
 
-    def __init__(self, username, password, balance):
+    def __init__(self, username, password, balance=0):
         self.username = username
         self.password = password
         self.balance = balance
@@ -29,11 +29,7 @@ class Account():
         existing_data[i] = data
         print(f"Withdrawal of {amount} successful! Your new balance is {self.balance}.")
 
-    def update_balance(self, action, amount):
-        action = input("Deposit or Withdraw: ")
-        amount = float(input("Please enter amount: "))
-        
-
+    def update_balance(self, action, amount):      
         with open("accounts.txt", "r") as f:
             existing_data = f.readlines()
         for i, line in enumerate(existing_data):
@@ -44,16 +40,18 @@ class Account():
             username, password, initial_deposit = line.split(',')
             initial_deposit = float(initial_deposit)
             if action.lower().startswith('d'):
-                self.deposit(amount, existing_data, i)
+                balance = self.deposit(amount, existing_data, i)
             elif action.lower().startswith('w'):
-                self.withdraw(amount, existing_data, i)
+                balance = self.withdraw(amount, existing_data, i)
             else:
                 print(f"{action.title()} not found!")    
 
         with open("accounts.txt", "w") as f:
             f.seek(0)
             f.writelines(existing_data) 
-            f.truncate()              
+            f.truncate()
+        return balance
+                      
 
                         
 
