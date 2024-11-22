@@ -7,16 +7,12 @@ class Account():
         self.password = password
         self.balance = balance
 
-    def create_account():      
-        
-        username = getpass.getpass("Please enter your username: ")
-        password = getpass.getpass("Please enter your password: ")
-        balance = float(getpass.getpass("Please enter your initial deposit: "))
-
+    def create_account(self):      
         with open("accounts.txt", "a") as f:
-            f.write(f"{username}, {password}, {balance}\n")
+            f.write(f"{self.username}, {self.password}, {self.balance}\n")
             f.truncate()
-        print(f"Welcome {username}! You have a current balance of {balance}.")
+        print(f"Welcome {self.username}! You have a current balance of {self.balance}.")
+        return self.username, self.password, self.balance
         
     def deposit(self, amount, existing_data, i):
         self.balance = self.balance + amount

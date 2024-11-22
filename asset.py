@@ -16,6 +16,7 @@ class Asset():
         print("Current assets:")
         for asset, value in assets.items():
             print(f"{asset:<10}: {value}")
+            
 
 
     def get_value(self):
