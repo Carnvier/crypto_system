@@ -11,9 +11,10 @@ def load_portfolios():
         data = f.readlines()
     return data
 
-def update_account_balance(username, password, amount, action):
+def update_account_balance(username, password, action, amount):
     account = acc.Account(username, password)
-    return account.update_balance(action, amount)
+    total = account.update_balance(action, amount)
+    return total
 
 def process_trade(username, asset, quantity, action):
     process =  p.Portfolio()
@@ -78,19 +79,22 @@ def run():
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
         user_name, password, action, amount = message.split(',')
-        balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.strip(), float(amount.strip()))
-        client.send(balance.encode('utf-8'))
+        balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
+        print(balance)
+        client.sendall(pickle.dumps(balance))
 
     if message == '3':
         current_assets =  ast.assets
         client.sendall(pickle.dumps(current_assets))
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
-        asset, quantity, action = message.split(',')
-        process_trade(user_name.lower().strip(), asset.strip(), quantity.strip(), action.strip())
+        print(message)
+        user_name, password, asset, quantity, action = message.split(',')
+        process_trade(user_name.lower().strip(), asset.title().strip(), quantity, action.strip())
         
     if message == '4':
-        client.sendall(pickle.dumps(load_portfolios()))
+        data = load_portfolios()
+        client.sendall(pickle.dumps(data))
 
     if message == '5':
         print(message)

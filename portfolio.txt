@@ -1,7 +1,5 @@
-cocinito, sell, Bitcoin, 10.0, 720000.0
-cocinito, sell, Bitcoin, 10.0, 720000.0
-cocinito, sell, Bitcoin, 10.0, 720000.0
-cocinito, sell, Gold, 10.0, 720000.0
+deezy, sell, Bitcoin, 18.0, 1296000.0
+deezy, sell, Gold, 12.0, 776000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
@@ -16,4 +14,4 @@ cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
 cocinito, buy, Ethereum, 20.0, 540000.0
-
+deezy, buy, Silver, 3.0, 60000.0

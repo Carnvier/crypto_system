@@ -14,22 +14,25 @@ class Account():
         print(f"Welcome {self.username}! You have a current balance of {self.balance}.")
         return self.username, self.password, self.balance
         
-    def deposit(self, amount, existing_data, i):
-        self.balance = self.balance + amount
+    def deposit(self, amount, existing_data, i, initial_deposit):
+        self.balance = initial_deposit + amount
         data = f"{self.username},{self.password},{self.balance}\n"
         existing_data[i] = data
         print(f"Deposit of {amount} successful! Your new balance is {self.balance}.")
+        return self.balance
 
-    def withdraw(self, amount, existing_data, i):
-        if amount > self.balance:
+    def withdraw(self, amount, existing_data, i, initial_deposit):
+        if amount > initial_deposit:
             print("Withdrawal failed insufficient funds!!!")
+            return
 
-        self.balance = self.balance - amount
+        self.balance = initial_deposit - amount
         data = f"{self.username},{self.password},{self.balance}\n"
         existing_data[i] = data
         print(f"Withdrawal of {amount} successful! Your new balance is {self.balance}.")
+        return self.balance
 
-    def update_balance(self, action, amount):      
+    def update_balance(self, action, amount):     
         with open("accounts.txt", "r") as f:
             existing_data = f.readlines()
         for i, line in enumerate(existing_data):
@@ -39,10 +42,10 @@ class Account():
             user_found = True
             username, password, initial_deposit = line.split(',')
             initial_deposit = float(initial_deposit)
-            if action.lower().startswith('d'):
-                balance = self.deposit(amount, existing_data, i)
-            elif action.lower().startswith('w'):
-                balance = self.withdraw(amount, existing_data, i)
+            if action.startswith('d'):
+                balance = self.deposit(amount, existing_data, i, initial_deposit)
+            elif action.startswith('w'):
+                balance = self.withdraw(amount, existing_data, i, initial_deposit)
             else:
                 print(f"{action.title()} not found!")    
 

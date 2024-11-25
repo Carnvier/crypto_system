@@ -2,6 +2,8 @@ import socket, pickle
 import time
 import portfolio as p
 
+condition = True
+
 def display_account():
     print("*"*10, "Welcome to DGTraders", "*"*10 )
     account = input("Do you have an account? (y/n): ")
@@ -50,15 +52,15 @@ def add_funds(user_name, password, amount):
     s.send(message.encode("utf-8"))
     print("Funds successfully deposited")
     balance = s.recv(BUFSIZE)
-    balance = float(balance.decode())
+    balance = pickle.loads(balance)
     print(f"Your new balance is: {balance:.2f}")
 
 def withdraw_funds(user_name, password, amount):
     message = f"{user_name}, {password}, withdraw, {amount}"
-    message = message.encode("utf-8")
+    s.send(message.encode("utf-8"))
     print("Funds successfully withdrawn")
     balance = s.recv(BUFSIZE)
-    balance = balance.decode()
+    balance = pickle.loads(balance)
     print(f"Your new balance is: {balance:.2f}")
 
 
@@ -71,19 +73,23 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def run():
     user_name, password = display_account()
-    print(user_name, password)
-    while True:
+    while condition:
         print("Welcome to the Menu")
         print("1. View Asset \n2. Deposit and Withdraw \n3. Trade \n4. View Holdings \n5. Logout")
-        option = input("Select the option from the list above using the number.")
+        option = input("Select the option from the list above using the number. ")
+        
         if option == '1':
+            message = "1"
+            s.send(message.encode('utf-8'))
             view_assets()
+            continue
+
         if option == '2':
-            message = '2'
+            message = "2"
             s.send(message.encode("utf-8"))
             while True:
-                action = input("Deposit or Withdraw: ")
-                amount = input("Enter amount: ")
+                action = str(input("Deposit or Withdraw: "))
+                amount = float(input("Enter amount: "))
                 if action.lower().startswith('d'):
                     add_funds(user_name, password, amount)
                     break
@@ -93,6 +99,8 @@ def run():
                 else:
                     print("Invalid action!")
                     continue
+            continue
+
         if option == '3':
             message = "3"
             s.send(message.encode("utf-8"))
@@ -100,13 +108,16 @@ def run():
             asset = input("Enter the asset you want to trade: ")
             quantity = input("Enter the quantity: ")
             action = input("Buy or Sell: ")
-            execute_trade(asset, quantity, action)
+            execute_trade(user_name, password, asset, quantity, action)
+            continue
 
         if option == '4':
-            view_portfolio()
+            view_portfolio(user_name)
+            continue
 
         if option == '5':
-            logout()
+            logout(condition)
+            
 
             
             
@@ -115,43 +126,45 @@ def run():
     
 
 def view_assets():
-    message = "1"
-    s.send(message.encode('utf-8'))
     assets = s.recv(BUFSIZE)
     assets = pickle.loads(assets)
     print("Current assets:")
     for asset, value in assets.items():
         print(f"{asset:<10}: {value}")
+    
 
 
 
-def execute_trade(asset, quantity, action):
-    message = f"{asset}, {quantity}, {action}"
+def execute_trade(user_name, password, asset, quantity, action):
+    message = f"{user_name}, {password}, {asset}, {quantity}, {action}"
     message = message.encode("utf-8")
-    (server, address) = s.accept()
-    server.send(message)
+    s.send(message)
+    
 
-def view_portfolio():
-    message = f""
+def view_portfolio(user_name):
+    message = f"4"
     message = message.encode("utf-8")
+    s.send(message)
     data = s.recv(BUFSIZE)
     data = pickle.loads(data)
-    p.Portfolio.view_holdings(data)
+    p.Portfolio().view_holdings(user_name, data)
 
-def logout():
-    confirm = "Are you sure you want to logout?"
+def logout(condition):
+    confirm = input("Are you sure you want to logout?" )
     if confirm.lower().startswith("y"):
         message = "5"
         s.send(message.encode("utf-8"))
         response = s.recv(BUFSIZE)
         print("You have been logged out")
+        s.close()
+        condition = False
+        return condition
 
 
 
-while True:
+while condition:
     s.connect(ADDRESS)
     print('Connected to server')
     run()
-    s.close()
     break
 

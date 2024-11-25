@@ -24,3 +24,10 @@
 17-11-2024 05:44:10, cocinito, sell, Bitcoin, 2
 17-11-2024 05:44:14, cocinito, sell, Bitcoin, 2
 17-11-2024 05:44:20, cocinito, sell, Bitcoin, 2
+26-11-2024 00:27:01, deezy, sell, Bitcoin, 3
+26-11-2024 00:28:35, deezy, sell, Gold, 2
+26-11-2024 00:41:11, deezy, buy, Silver, 1
+26-11-2024 00:42:36, deezy, buy, Silver, 2
+26-11-2024 00:43:09, deezy, sell, Bitcoin, 2
+26-11-2024 00:43:48, deezy, sell, Bitcoin, 2
+26-11-2024 00:44:14, deezy, sell, Bitcoin, 3
