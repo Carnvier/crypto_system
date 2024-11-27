@@ -31,3 +31,11 @@
 26-11-2024 00:43:09, deezy, sell, Bitcoin, 2
 26-11-2024 00:43:48, deezy, sell, Bitcoin, 2
 26-11-2024 00:44:14, deezy, sell, Bitcoin, 3
+26-11-2024 10:31:04, deezy, buy, Ethereum,  5
+26-11-2024 10:36:50, deezy, buy, Ethereum,  5
+26-11-2024 10:37:09, deezy, buy, Ethereum,  5
+26-11-2024 10:37:42, deezy, buy, Ethereum,  2
+26-11-2024 10:38:26, deezy, sell, Ethereum,  10
+26-11-2024 10:38:58, deezy, buy, Gold,  3
+26-11-2024 10:39:11, deezy, sell, Silver,  5
+26-11-2024 15:19:18, deezy, sell, Ethereum,  2

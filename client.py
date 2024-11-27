@@ -45,7 +45,15 @@ def display_account():
             print(f'Your current balance: {balance:.2f}')
             return user_name, password
         elif response.decode('utf-8').lower() == 'fail':
-            print('Your password of username is incorrect. Please try again')
+            print(f'Your password for {user_name} is incorrect. Please try again')
+            return
+
+def view_assets():
+    assets = s.recv(BUFSIZE)
+    assets = pickle.loads(assets)
+    print("Current assets:")
+    for asset, value in assets.items():
+        print(f"{asset:<10}: {value}")
 
 def add_funds(user_name, password, amount):
     message = f"{user_name}, {password}, deposit, {amount}"
@@ -64,14 +72,37 @@ def withdraw_funds(user_name, password, amount):
     print(f"Your new balance is: {balance:.2f}")
 
 
-HOST = 'localhost'
-PORT = 3030
-ADDRESS = (HOST, PORT)
-BUFSIZE = 1024
+def execute_trade(user_name, password, asset, quantity, action):
+    message = f"{user_name}, {password}, {asset}, {quantity}, {action}"
+    message = message.encode("utf-8")
+    s.send(message)
+    
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def view_portfolio(user_name, password):
+    message = f"4"
+    message = message.encode("utf-8")
+    s.send(message)
+    message = f'{user_name}, {password}'
+    data = s.recv(BUFSIZE)
+    data = pickle.loads(data)
+    p.Portfolio().view_holdings(user_name, data)
 
-def run():
+
+def logout(condition):
+    confirm = input("Are you sure you want to logout?" )
+    if confirm.lower().startswith("y"):
+        message = "5"
+        s.send(message.encode("utf-8"))
+        response = s.recv(BUFSIZE)
+        print("You have been logged out")
+        s.close()
+        condition = False
+    else: 
+        condition = True
+        return condition
+        
+
+def run(condition):
     user_name, password = display_account()
     while condition:
         print("Welcome to the Menu")
@@ -116,55 +147,19 @@ def run():
             continue
 
         if option == '5':
-            logout(condition)
-            
-
-            
-            
+            condition = logout(condition)  
 
 
-    
+# client-server setup
+HOST = 'localhost'
+PORT = 3030
+ADDRESS = (HOST, PORT)
+BUFSIZE = 1024
 
-def view_assets():
-    assets = s.recv(BUFSIZE)
-    assets = pickle.loads(assets)
-    print("Current assets:")
-    for asset, value in assets.items():
-        print(f"{asset:<10}: {value}")
-    
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(ADDRESS)
+print('Connected to server')
+# Running main program
+run(condition)
 
-
-
-def execute_trade(user_name, password, asset, quantity, action):
-    message = f"{user_name}, {password}, {asset}, {quantity}, {action}"
-    message = message.encode("utf-8")
-    s.send(message)
-    
-
-def view_portfolio(user_name):
-    message = f"4"
-    message = message.encode("utf-8")
-    s.send(message)
-    data = s.recv(BUFSIZE)
-    data = pickle.loads(data)
-    p.Portfolio().view_holdings(user_name, data)
-
-def logout(condition):
-    confirm = input("Are you sure you want to logout?" )
-    if confirm.lower().startswith("y"):
-        message = "5"
-        s.send(message.encode("utf-8"))
-        response = s.recv(BUFSIZE)
-        print("You have been logged out")
-        s.close()
-        condition = False
-        return condition
-
-
-
-while condition:
-    s.connect(ADDRESS)
-    print('Connected to server')
-    run()
-    break
 

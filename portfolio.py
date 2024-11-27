@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-import asset as ast
+import asset as ast, cryptohive_db as db
 
 
 class Portfolio():
@@ -80,100 +80,48 @@ class Portfolio():
 
     def view_holdings(self, username, data):
         print(f"Portfolio for {username}:")
-        for line in data:
-            user_name, action, asset, quantity, cost = line.split(",")
-            if username != user_name.strip():
-                continue
-                
+        for i, line in enumerate(data):
+            user_name, action, asset, quantity, cost = data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]    
             print(f"{action.upper():<10} {asset:<10} {quantity:<10} {cost}", end="")
     
-    def buy_asset(self, username, asset, quantity):
-        user_found = False
+    def buy_asset(self, username, password, asset, quantity):
+        account = db.CryptoHiveDB().read_account(username, password)
         quantity = int(quantity)
         action = "buy"
 
         if asset not in self.assets:
             print("Asset not found in our portfolio.")
             return
-        
-    
+
         asset_value  = self.assets[asset]
         total_cost = asset_value * quantity
-        with open("accounts.txt", "r") as f:
-            existing_data = f.readlines()
 
-            for i, line in enumerate(existing_data):
-                user_name, password, initial_deposit = line.split(",")
+        if account:
+            balance = float(account[0][4])
+            if balance < total_cost:
+                print("Insufficient funds for purchase.")
+                return
+            
+            portfolio = (username, action, asset, quantity, total_cost)
+            db.CryptoHiveDB().portfolio_insert_data(portfolio)
 
-                if username != user_name.strip():
-                    continue
-
-                user_found = True
-                balance = float(initial_deposit)
-                if balance < total_cost:
-                    print("Insufficient funds for purchase.")
-                    return
+            balance = balance - total_cost
+            account = (username, password, balance)
+            db.CryptoHiveDB().account_update_data(account)
+            print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
+            print(f"{username.title()} Buy Transaction Summary:")
+            print (f"{asset} {quantity} {asset_value} {total_cost}")
+            return 
                 
-                with open('portfolio.txt', 'r+') as p:
-                    current_data = p.readlines()
-                    asset_found = False
-
-                    for j, dic in enumerate(current_data):
-                        if asset in dic and user_found and action in dic:
-                            asset_found = True
-                            c_quantity, c_cost = map(float, dic.split(',')[3:5])
-                            total_quantity = c_quantity + quantity
-                            new_total_cost = c_cost + total_cost
-                            self.portfolio= {
-                                username:{
-                                    action:{
-                                        asset:{ 
-                                            'quantity': total_quantity,
-                                            'total_cost': new_total_cost
-                                        }
-                                    }
-                                }
-                            }
-                            current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
-                    
-                    if  not asset_found:
-                        self.portfolio = {
-                            username : {
-                                action:{
-                                    asset: {
-                                        'quantity': quantity, 
-                                        'total_cost': total_cost
-                                    }
-                                }
-                            }
-                        }
-                        data = f"{username}, {action}, {asset}, {quantity}, {total_cost}\n"
-                        current_data.append(data)
-                        
-
-                    p.seek(0)
-                    p.writelines(current_data)
-                    p.truncate()
-
-                    balance = balance - total_cost
-                    existing_data[i] = f"{username.strip()}, \t{password.strip()}, \t{balance}\n"
-                    with open("accounts.txt", "w") as f:
-                        f.writelines(existing_data) 
-
-                    print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
-                    print(f"{username.title()} Buy Transaction Summary:")
-                    print (f"{asset} {quantity} {asset_value} {total_cost}")
-                    return self.portfolio
-                        
-            if not user_found:
-                print(f"{username.title()} not found!")
-            return self.portfolio
+        if not account:
+            print(f"{username.title()} not found!")
+        return
                         
 
 
 
-    def sell_asset(self, username, asset, quantity):
-        user_found = False
+    def sell_asset(self, username, password, asset, quantity):
+        account = db.CryptoHiveDB().read_account(username, password)
         quantity = int(quantity)
         action = "sell"
 
@@ -183,78 +131,32 @@ class Portfolio():
         
         asset_value  = self.assets[asset]
         total_cost = asset_value * quantity
-        with open("accounts.txt", "r") as f:
-            existing_data = f.readlines()
+        
+        if account:
+            balance = float(account[0][4])
+            if balance < total_cost:
+                print("Insufficient funds for sale.")
+                return
+            
+            portfolio = (username, action, asset, quantity, total_cost)
+            db.CryptoHiveDB().portfolio_insert_data(portfolio)
 
-            for i, line in enumerate(existing_data):
-                user_name, password, initial_deposit = line.split(",")
-
-                if username != user_name.strip():
-                    continue
-                
-                user_found = True
-                balance = float(initial_deposit)
-                if balance < total_cost:
-                    print("Insufficient funds for purchase.")
-                    return
-                
+            balance = balance - total_cost
+            account = (username, password, balance)
+            db.CryptoHiveDB().account_update_data(account)
+      
+            print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
+            print(f"{username.title()} Sell Transaction Summary:")
+            print (f"{asset} {quantity} {asset_value} {total_cost}")
+            return 
                         
-                with open('portfolio.txt', 'r+') as p:
-                    current_data = p.readlines()
-                    asset_found = False
-
-                    for j, dic in enumerate(current_data):
-                        if asset in dic and user_found and action in dic:
-                            asset_found = True
-                            c_quantity, c_cost = map(float, dic.split(',')[3:5])
-                            total_quantity = c_quantity + quantity
-                            new_total_cost = c_cost + total_cost
-                            self.portfolio= {
-                                username:{
-                                    action:{
-                                        asset: {
-                                            'quantity': total_quantity,
-                                            'total_cost': new_total_cost
-                                        }
-                                    }
-                                }
-                            }
-                            current_data[j] = f"{user_name}, {action}, {asset}, {total_quantity}, {new_total_cost}\n"
-
-                    if not asset_found and user_found :
-                        self.portfolio = {
-                            username : {
-                                action:{
-                                    asset: {
-                                        'quantity': quantity, 
-                                        'total_cost': total_cost
-                                    }
-                                }
-                            }
-                        }
-                        data = f"{username}, {action}, {asset}, {quantity}, {total_cost}\n"
-                        current_data.append(data)
-                        
-                                
-                    p.seek(0)
-                    p.writelines(current_data)
-                    p.truncate()
-
-                    balance = balance - total_cost
-                    existing_data[i] = f"{username.strip()}, {password.strip()}, {balance}\n"
-                    with open("accounts.txt", "w") as f:
-                        f.writelines(existing_data) 
-                    print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
-                    print(f"{username.title()} Sell Transaction Summary:")
-                    print (f"{asset} {quantity} {asset_value} {total_cost}")
-                    return self.portfolio
-                        
-            if not user_found:
-                print(f"{username.title()} not found!")
-            return self.portfolio
+        if not account:
+            print(f"{username.title()} not found!")
+        return 
 
     def save_transaction(self, username, asset, quantity, action):
-        with open("transactions.txt", "a") as f:
-            date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-            f.write(f"{date}, {username}, {action}, {asset}, {quantity}\n")
+        amount = quantity * self.assets[asset]
+        transaction = (username, asset, quantity, action, amount)
+        db.CryptoHiveDB().transactions_insert_data(transaction)
+        return
 
