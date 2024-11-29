@@ -56,7 +56,6 @@ class CryptoHiveDB():
         def account_insert_data(self, account):
                 self.c.execute("INSERT INTO Accounts (username, password, balance) VALUES (?, ?, ?)", account)
                 self.conn.commit()
-               
                 return
 
         def portfolio_insert_data(self, portfolio):
@@ -69,8 +68,8 @@ class CryptoHiveDB():
                 self.conn.commit()
                 return
 
-        def account_update_data(self, username, password, balance):
-                self.c.execute("UPDATE Accounts SET balance = ? WHERE username = ? and password = ?", (balance, username, password))
+        def account_update_data(self, account):
+                self.c.execute("UPDATE Accounts SET balance = ? WHERE username = ? and password = ?", account)
                 self.conn.commit()
                 return
 
@@ -86,12 +85,12 @@ class CryptoHiveDB():
 
 
         def read_portfolio(self, username):
-                self.c.execute("SELECT * FROM Portfolio WHERE username = ?", (username))
+                self.c.execute("SELECT * FROM Portfolio WHERE username = ?", (username,))
                 portfolio =  self.c.fetchall()
                 return portfolio
         
         def read_transactions(self, username):
-                self.c.execute("SELECT * FROM Transactions WHERE username =?", (username))
+                self.c.execute("SELECT * FROM Transactions WHERE username =?", (username,))
                 transactions =  self.c.fetchall()
                 return transactions
 
@@ -99,5 +98,6 @@ class CryptoHiveDB():
                 self.c.close()
                 self.conn.close()
 
-account = CryptoHiveDB().read_account('denzel', 'mil12345')
+account = CryptoHiveDB().read_account('ghost', 'ghost12345')
+print(account)
 CryptoHiveDB().close_db()

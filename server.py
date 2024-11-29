@@ -46,7 +46,7 @@ def process_trade(username, password, asset, quantity, action):
     if action.lower().startswith('b'):
         process.buy_asset(username, password, asset, quantity)
     elif action.lower().startswith('s'):
-        process.sell_asset(username, asset, quantity)
+        process.sell_asset(username, password, asset, quantity)
     process.save_transaction(username, asset, quantity, action)
 
 def run(condition):
@@ -77,7 +77,7 @@ def run(condition):
         message = (message.decode('utf-8'))
         print(message)
         user_name, password, asset, quantity, action = message.split(',')
-        process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), quantity, action.strip())
+        process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), int(quantity), action.strip())
         condition = True
         return condition
 
@@ -86,7 +86,7 @@ def run(condition):
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
         user_name, password = message.split(',')
-        data = db.CryptoHiveDB.read_portfolio(user_name.strip())
+        data = db.CryptoHiveDB().read_portfolio(user_name.strip())
         client.sendall(pickle.dumps(data))
         condition = True
         return condition
@@ -123,15 +123,6 @@ while condition:
 
 
 
-def update_balance_in_db(username, password, balance):
-    db.CryptoHiveDB().account_update_data(username, password, balance)
-    print('Successfully updated')
-    return
 
-def update_portfolio_in_db(username, action, asset, quantity, price) :
-    db.CryptoHiveDB().portfolio_update_data(username, action, asset, quantity, price)
-def record_transaction_in_db(username, action, asset, quantity) :
-    transaction = (username, action, asset, quantity)
-    db.CryptoHiveDB().transactions_insert_data(transaction)
-
-print(load_account_from_db('denzel', 'mil12345'))
+print(load_account_from_db('ghost', 'ghost12345'))
+print(db.CryptoHiveDB().read_portfolio('ghost'))

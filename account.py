@@ -14,8 +14,10 @@ class Account():
         return self.username, self.password, self.balance
         
     def deposit(self, amount, initial_deposit):
-        self.balance = initial_deposit + amount
-        db.CryptoHiveDB().account_update_data(self.username, self.password, self.balance)
+        self.balance = float(initial_deposit + amount)
+        account = (self.balance, self.username, self.password)
+        db.CryptoHiveDB().account_update_data(account)
+
         print(f"Deposit of {amount} successful! Your new balance is {self.balance}.")
         return self.balance
 
@@ -24,8 +26,9 @@ class Account():
             print("Withdrawal failed insufficient funds!!!")
             return
 
-        self.balance = initial_deposit - amount
-        db.CryptoHiveDB().account_update_data(self.username, self.password, self.balance)
+        self.balance = float(initial_deposit - amount)
+        account = (self.balance, self.username, self.password)
+        db.CryptoHiveDB().account_update_data(account)
         print(f"Withdrawal of {amount} successful! Your new balance is {self.balance}.")
         return self.balance
 

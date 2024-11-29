@@ -25,7 +25,7 @@ def display_account():
         message = f"{user_name}, {password}, {deposit}"
         s.send(message.encode("utf-8"))
         response = s.recv(BUFSIZE)
-        if response.decode() == "success":
+        if response.decode('utf-8') == "success":
             print("Account successfully created") 
             return user_name, password
         else:
@@ -83,6 +83,7 @@ def view_portfolio(user_name, password):
     message = message.encode("utf-8")
     s.send(message)
     message = f'{user_name}, {password}'
+    s.send(message.encode("utf-8"))
     data = s.recv(BUFSIZE)
     data = pickle.loads(data)
     p.Portfolio().view_holdings(user_name, data)
@@ -143,7 +144,7 @@ def run(condition):
             continue
 
         if option == '4':
-            view_portfolio(user_name)
+            view_portfolio(user_name, password)
             continue
 
         if option == '5':

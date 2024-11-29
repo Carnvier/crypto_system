@@ -79,10 +79,10 @@ class Portfolio():
 
 
     def view_holdings(self, username, data):
-        print(f"Portfolio for {username}:")
+        print(f"Portfolio for {username.title()}:")
         for i, line in enumerate(data):
-            user_name, action, asset, quantity, cost = data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]    
-            print(f"{action.upper():<10} {asset:<10} {quantity:<10} {cost}", end="")
+            date, user_name, action, asset, quantity, cost = data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6]    
+            print(f"{date:<13} {action.upper():<10} {asset:<10} {quantity:<10} {cost}")
     
     def buy_asset(self, username, password, asset, quantity):
         account = db.CryptoHiveDB().read_account(username, password)
@@ -97,7 +97,7 @@ class Portfolio():
         total_cost = asset_value * quantity
 
         if account:
-            balance = float(account[0][4])
+            balance = float(account[0][3])
             if balance < total_cost:
                 print("Insufficient funds for purchase.")
                 return
@@ -106,7 +106,7 @@ class Portfolio():
             db.CryptoHiveDB().portfolio_insert_data(portfolio)
 
             balance = balance - total_cost
-            account = (username, password, balance)
+            account = (balance, username, password)
             db.CryptoHiveDB().account_update_data(account)
             print(f"Buy Transaction Success!\nCurrent Balance: {balance}\n")
             print(f"{username.title()} Buy Transaction Summary:")
@@ -133,7 +133,7 @@ class Portfolio():
         total_cost = asset_value * quantity
         
         if account:
-            balance = float(account[0][4])
+            balance = float(account[0][3])
             if balance < total_cost:
                 print("Insufficient funds for sale.")
                 return
@@ -142,7 +142,7 @@ class Portfolio():
             db.CryptoHiveDB().portfolio_insert_data(portfolio)
 
             balance = balance - total_cost
-            account = (username, password, balance)
+            account = (balance, username, password)
             db.CryptoHiveDB().account_update_data(account)
       
             print(f"Sell Transaction Success!\nCurrent Balance: {balance}\n")
@@ -155,8 +155,8 @@ class Portfolio():
         return 
 
     def save_transaction(self, username, asset, quantity, action):
-        amount = quantity * self.assets[asset]
-        transaction = (username, asset, quantity, action, amount)
+        amount = float(quantity * self.assets[asset])
+        transaction = (username, action, asset, quantity, amount)
         db.CryptoHiveDB().transactions_insert_data(transaction)
         return
 
