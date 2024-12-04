@@ -10,11 +10,12 @@ class CryptoHiveDB():
        
 
         def initialize_db(self):
+                '''Create a new database'''
                 # Create Accounts table
                 self.c.execute("""
                 CREATE TABLE IF NOT EXISTS Accounts (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT NOT NULL,
+                        username TEXT NOT NULL UNIQUE,
                         password VARCHAR NOT NULL,
                         balance FLOAT NOT NULL
                 )
@@ -54,50 +55,77 @@ class CryptoHiveDB():
                 
 
         def account_insert_data(self, account):
-                self.c.execute("INSERT INTO Accounts (username, password, balance) VALUES (?, ?, ?)", account)
-                self.conn.commit()
-                return
+                '''Insert user account data into database'''
+                try:
+                        self.c.execute("INSERT INTO Accounts (username, password, balance) VALUES (?, ?, ?)", account)
+                        self.conn.commit()
+                        return "Success"
+                except Exception as e:
+                        return f"Error creating new user: \n\t{e}."
 
         def portfolio_insert_data(self, portfolio):
+                '''Insert user portfolio data into database'''
                 self.c.execute("INSERT INTO Portfolio (username, action, asset, quantity, price) VALUES (?, ?, ?, ?, ?)", portfolio)
                 self.conn.commit()
                 return
 
         def transactions_insert_data(self, transaction):
+                '''Insert user transaction data into database'''
                 self.c.execute("INSERT INTO Transactions (username, action, asset, quantity, amount) VALUES (?, ?, ?, ?, ?)", transaction)
                 self.conn.commit()
                 return
 
         def account_update_data(self, account):
-                self.c.execute("UPDATE Accounts SET balance = ? WHERE username = ? and password = ?", account)
-                self.conn.commit()
-                return
+                '''Update user account data'''
+                try:
+                        self.c.execute("UPDATE Accounts SET balance = ? WHERE username = ? and password = ?", account)
+                        self.conn.commit()
+                        return "Success"
+                except Exception as e:
+                        return f"Error updating user balance: \n\t{e}."
+                
 
         def portfolio_update_data(self, username, action, asset, quantity, price):
+                '''Update the portfolio data for the specified user and asset'''
                 self.c.execute("UPDATE Portfolio SET quantity = ?, price = ? WHERE username = ? and action = ? and asset = ?", (quantity, price, username, action, asset))
                 self.conn.commit()
                 return
 
         def read_account(self, username, password):
+                '''Read user account data'''
                 self.c.execute("SELECT * FROM Accounts WHERE username = ? and password = ?", (username, password))
                 account =  self.c.fetchall()
                 return account
 
 
         def read_portfolio(self, username):
+                '''Read the portfolio from the database'''
                 self.c.execute("SELECT * FROM Portfolio WHERE username = ?", (username,))
                 portfolio =  self.c.fetchall()
                 return portfolio
         
+        def active_holdings(self, username):
+                '''Read the active holdings for the specified user'''
+                self.c.execute("SELECT * FROM Portfolio WHERE username =? and holding =?", (username, True))
+                active_holdings =  self.c.fetchall()
+                return active_holdings
+        
+        def close_holding(self, details):
+                '''Close a holding by updating the holding status in the portfolio'''
+                self.c.execute("UPDATE Portfolio SET holding = False WHERE username = ? and id = ?",
+                               details)
+                self.conn.commit()
+                return 'success'
+        
         def read_transactions(self, username):
+                '''Read the transactions for the specified user'''
                 self.c.execute("SELECT * FROM Transactions WHERE username =?", (username,))
                 transactions =  self.c.fetchall()
                 return transactions
 
         def close_db(self):
+                '''Close the database connection'''
                 self.c.close()
                 self.conn.close()
 
-account = CryptoHiveDB().read_account('ghost', 'ghost12345')
-print(account)
-CryptoHiveDB().close_db()
+

@@ -1,28 +1,24 @@
-assets = {
-    "Bitcoin" : 72000,
-    "Ethereum" : 27000,
-    "Gold": 28000,
-    "Silver": 20000,
-    }
+import trading_data as td
+import time
 
 class Asset():
-    def __init__(self, name, price, quantity):
-        self.name = name
-        self.price = price
-        self.quantity = quantity
+     
+    def get_values(self):
+        assets = {
+            "Bitcoin" : td.closing_price("BTC-USD"),
+            "Ethereum" : td.closing_price("ETH-USD"),
+            "Gold": td.closing_price("GC=F"),
+            "Silver": td.closing_price("SI=F"),
+            "EURUSD": td.closing_price("EURUSD=X"),
+            }
+        return assets      
 
-
-    def view_assets(self, assets):
+    def view_assets(self):
+        assets = self.get_values()
         print("Current assets:")
         for asset, value in assets.items():
             print(f"{asset:<10}: {value}")
             
 
-
-    def get_value(self):
-        total_value = self.price * self.quantity
-        print(total_value)
-    
-   
 
 

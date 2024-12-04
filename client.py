@@ -7,6 +7,7 @@ condition = True
 def display_account():
     print("*"*10, "Welcome to DGTraders", "*"*10 )
     account = input("Do you have an account? (y/n): ")
+    # collecting data for account creation
     if account.lower().startswith("n"):
         print("Lets get you started...")
         message = "signup"
@@ -25,11 +26,17 @@ def display_account():
         message = f"{user_name}, {password}, {deposit}"
         s.send(message.encode("utf-8"))
         response = s.recv(BUFSIZE)
-        if response.decode('utf-8') == "success":
+
+        # printing response from server
+        try:
+            user_name, password, balance = response.split(',')
             print("Account successfully created") 
+            print(f"Welcome {user_name}! You have a current balance of {balance}.")
             return user_name, password
-        else:
-            print("Error creating account. Please contact administrator")
+        except:
+                print(response)
+                # if account creation fails, tells user to try again.
+                return display_account()
 
     elif account.lower().startswith("y"):    
         message = f'login'
@@ -38,38 +45,51 @@ def display_account():
         password = input("Please enter your password: ")
         message = f'{user_name}, {password}'
         s.send(message.encode('utf-8'))
-        response = s.recv(BUFSIZE)
-        if response.decode('utf-8').lower() == 'success':
-            balance = s.recv(BUFSIZE)
+        balance = s.recv(BUFSIZE)
+        try:
             balance = float(balance.decode('utf-8'))
             print(f'Your current balance: {balance:.2f}')
             return user_name, password
-        elif response.decode('utf-8').lower() == 'fail':
-            print(f'Your password for {user_name} is incorrect. Please try again')
-            return
+        except:
+            print(f'Your password or username is incorrect. Please try again')
+            return display_account()
+    else:
+        print("Invalid option. Please try again.")
+        return display_account()
 
 def view_assets():
     assets = s.recv(BUFSIZE)
-    assets = pickle.loads(assets)
-    print("Current assets:")
-    for asset, value in assets.items():
-        print(f"{asset:<10}: {value}")
+    try:
+        assets = pickle.loads(assets)
+        print("Current assets:")
+        for asset, value in assets.items():
+            print(f"{asset:<10}: {value}")
+    except Exception as e: 
+        print(f"Error while loading: {e}")
+
 
 def add_funds(user_name, password, amount):
     message = f"{user_name}, {password}, deposit, {amount}"
     s.send(message.encode("utf-8"))
-    print("Funds successfully deposited")
-    balance = s.recv(BUFSIZE)
-    balance = pickle.loads(balance)
-    print(f"Your new balance is: {balance:.2f}")
+    try:
+        balance = s.recv(BUFSIZE)
+        balance = pickle.loads(balance)
+        print("Funds successfully deposited")
+        print(f"Your new balance is: {balance:.2f}")
+    except Exception as e:
+        print(f"Error: {e}")
+
 
 def withdraw_funds(user_name, password, amount):
     message = f"{user_name}, {password}, withdraw, {amount}"
     s.send(message.encode("utf-8"))
-    print("Funds successfully withdrawn")
-    balance = s.recv(BUFSIZE)
-    balance = pickle.loads(balance)
-    print(f"Your new balance is: {balance:.2f}")
+    try:
+        balance = s.recv(BUFSIZE)
+        balance = pickle.loads(balance)
+        print("Funds successfully withdrawn")
+        print(f"Your new balance is: {balance:.2f}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 def execute_trade(user_name, password, asset, quantity, action):
@@ -79,20 +99,37 @@ def execute_trade(user_name, password, asset, quantity, action):
     
 
 def view_portfolio(user_name, password):
-    message = f"4"
-    message = message.encode("utf-8")
-    s.send(message)
+    '''Viewing current holdings'''
     message = f'{user_name}, {password}'
     s.send(message.encode("utf-8"))
     data = s.recv(BUFSIZE)
-    data = pickle.loads(data)
-    p.Portfolio().view_holdings(user_name, data)
+    try:
+        data = pickle.loads(data)
+        p.Portfolio().view_holdings(user_name, data)
+    except Exception as e:
+        print(f"Error while loading: {e}")
+
+def close_trade(user_name, password, holding_id):
+    ''''CLosing specified current holding sending data to server and display response from server'''
+    message =  f'{user_name}, {password}, {holding_id}'
+    s.send(message.encode("utf-8"))
+    # displaying response from server
+    response = s.recv(BUFSIZE)
+    try:
+        response = response.decode("utf-8")
+        print(response)
+        profit, total, balance = response.split(',')
+        print(f"PROFIT: {profit}\nTotal: {total}\nBalance: {balance}")
+    except Exception as e:
+        print(f"Error: {e}")
+    condition = True
+    return condition
 
 
 def logout(condition):
     confirm = input("Are you sure you want to logout?" )
     if confirm.lower().startswith("y"):
-        message = "5"
+        message = "6"
         s.send(message.encode("utf-8"))
         response = s.recv(BUFSIZE)
         print("You have been logged out")
@@ -107,7 +144,7 @@ def run(condition):
     user_name, password = display_account()
     while condition:
         print("Welcome to the Menu")
-        print("1. View Asset \n2. Deposit and Withdraw \n3. Trade \n4. View Holdings \n5. Logout")
+        print("1. View Asset \n2. Deposit and Withdraw \n3. Trade \n4. View Holdings \n5. Close Holding \n6. Logout")
         option = input("Select the option from the list above using the number. ")
         
         if option == '1':
@@ -143,11 +180,35 @@ def run(condition):
             execute_trade(user_name, password, asset, quantity, action)
             continue
 
+        # display current holdings
         if option == '4':
+            message = "4"
+            s.send(message.encode("utf-8"))
             view_portfolio(user_name, password)
             continue
 
+        # close a specified holding
         if option == '5':
+            message = "5"
+            s.send(message.encode("utf-8"))
+            view_portfolio(user_name, password)
+            # check if input is int
+            while True:
+                if (holding_id := input("Select holding to close by ID: ")).isdigit():
+                    holding_id = int(holding_id)  # Convert to integer if needed
+                    break  # Exit the loop if input is valid
+                else:
+                    print("Please enter an integer value of ID (e.g., 2)!")
+            confirmation = input(f"Are you sure you want to close {holding_id} (y/n): ")
+            if confirmation.lower().startswith('y'):
+                close_trade(user_name, password, holding_id)
+            elif confirmation.lower().startswith('n'):
+                print("Order cancelled")
+            else:
+                print("Invalid input. Order cancelled")
+            
+
+        if option == '6':
             condition = logout(condition)  
 
 

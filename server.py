@@ -10,14 +10,16 @@ def load_account_from_db(username, password):
 def authentication():
     message = client.recv(BUFSIZE)
     print(message.decode('utf-8'))
+
+    # creating new account
     if message.decode('utf-8') == 'signup':
         message = client.recv(BUFSIZE)
         user_name, password, balance = message.decode('utf-8').split(',')
         user = acc.Account(user_name.lower().strip(), password.lower().strip(), balance.lower().strip())
-        user.create_account()
-        response = f'success'
+        response = user.create_account()
         client.send(response.encode('utf-8'))
 
+    # authentication for login
     elif message.decode('utf-8') == 'login':
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
@@ -25,15 +27,14 @@ def authentication():
         print(message)
         account = load_account_from_db(user_name.strip(), password.strip())
         print(account)
-        if account:
+        # send account balance to server
+        try:
             balance = account[0][3]
-            response = f'success'
-            client.send(response.encode('utf-8'))
             response = f'{balance}'
             client.send(response.encode('utf-8'))
-        
-        if not account:
-            response = 'Fail'
+        # if no account balance send an error message
+        except:
+            response = 'Failed to get balance. Please try again.'
             client.send(response.encode('utf-8'))
 
 def update_account_balance(username, password, action, amount):
@@ -53,8 +54,12 @@ def run(condition):
     message = client.recv(BUFSIZE)
     message =message.decode('utf-8')
     if message == '1':
-        current_assets =  ast.assets
-        client.sendall(pickle.dumps(current_assets))
+        try:
+            current_assets =  ast.Asset().get_values()
+            print(current_assets)
+            client.sendall(pickle.dumps(current_assets))
+        except Exception as e:
+            print(f'Error: {e}')
         condition = True
         return condition
 
@@ -62,26 +67,32 @@ def run(condition):
     if message == '2':
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
-        user_name, password, action, amount = message.split(',')
-        balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
-        print(balance)
-        client.sendall(pickle.dumps(balance))
+        try:
+            user_name, password, action, amount = message.split(',')
+            balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
+            print(balance)
+            client.sendall(pickle.dumps(balance))
+        except Exception as e:
+            print(f'Error: {e}')
         condition = True
         return condition
 
 
     if message == '3':
-        current_assets =  ast.assets
-        client.sendall(pickle.dumps(current_assets))
-        message = client.recv(BUFSIZE)
-        message = (message.decode('utf-8'))
-        print(message)
-        user_name, password, asset, quantity, action = message.split(',')
-        process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), int(quantity), action.strip())
+        try:
+            current_assets =  ast.Asset().get_values()
+            client.sendall(pickle.dumps(current_assets))
+            message = client.recv(BUFSIZE)
+            message = (message.decode('utf-8'))
+            print(message)
+            user_name, password, asset, quantity, action = message.split(',')
+            process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), int(quantity), action.strip())
+        except Exception as e:
+            print(f'Error: {e}')
         condition = True
         return condition
 
-        
+    #  get current holdings for specified user
     if message == '4':
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
@@ -90,8 +101,35 @@ def run(condition):
         client.sendall(pickle.dumps(data))
         condition = True
         return condition
-
+    
+    
+    # close holdings 
     if message == '5':
+        # show holdings
+        message = client.recv(BUFSIZE)
+        message = message.decode('utf-8')
+        try:
+            user_name, password = message.split(',')
+            data = db.CryptoHiveDB().active_holdings(user_name.strip())
+            client.sendall(pickle.dumps(data))
+
+            # closing selected holding 
+            message = client.recv(BUFSIZE)
+            message = message.decode('utf-8')
+            print(message)
+            user_name, password, holding_id = message.split(',')
+            user_name, password, holding_id = user_name.strip(), password.strip(), int(holding_id)
+            response = p.Portfolio().close_position(user_name, password, holding_id)
+            print(response)
+            client.send(response.encode('utf-8'))
+        except Exception as e:
+            print(f'Error: {e}')
+        condition = True
+        return condition
+
+
+    # logout of account and shutdown client and server
+    if message == '6':
         print(message)
         print(f"Logging out {client}.")
         message = f'Logging out!'

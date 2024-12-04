@@ -4,29 +4,41 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import time  # Import time to use sleep
 
+def closing_price(symbol):
+    # Fetch current closing price
+    try:
+        current_price = yf.Ticker(symbol).history(period='1d')['Close'].iloc[0]
+        return current_price
+    except:
+        print(f"Failed to fetch current price for {symbol}")
+        return 'Market closed'
+    
 # Define the stock symbol and the date range
-symbol = 'EURUSD=X'  # EUR/USD currency pair
-end_date = datetime.now()  # Current date
-start_date = end_date - timedelta(days=30)  # Last 30 days
+# symbol = 'BTC=X'  # EUR/USD currency pair
+# end_date = datetime.now()  # Current date
+# start_date = end_date - timedelta(days=30)  # Last 30 days
 
-# Fetch historical data for the last 30 days
-historical_data = yf.Ticker(symbol).history(start=start_date, end=end_date)
+# # Fetch historical data for the last 30 days
+# historical_data = yf.Ticker(symbol).history(start=start_date, end=end_date)
 
-# Print the historical data
-print(historical_data)
+# # Print the historical data
+# print(historical_data)
 
-while True:
-    stock = yf.Ticker(symbol)
-    historical_data = stock.history(period='1d')
+
+
+
+# while True:
+#     stock = yf.Ticker(symbol)
+#     historical_data = stock.history(period='1d')
     
-    closing_prices = historical_data["Close"]
-    current_price = closing_prices.iloc[-1]  # Get the last closing price
-    current_time = historical_data.index[-1]  # Get the last date from the index
-    with open('eurusd.transactions', 'a+') as f:
-        f.writelines(f'{datetime.now()} {current_price}\n')    
-    print(f"Current Price: {current_price} at {current_time}")
+#     closing_prices = historical_data["Close"]
+#     current_price = closing_prices.iloc[-1]  # Get the last closing price
+#     current_time = historical_data.index[-1]  # Get the last date from the index
+#     with open('eurusd.transactions', 'a+') as f:
+#         f.writelines(f'{datetime.now()} {current_price}\n')    
+#     print(f"Current Price: {current_price} at {current_time}")
     
-    time.sleep(20) 
+#     time.sleep(20) 
 
 # # Fetch historical data using yfinance
 # ohlc = yf.download(symbol, start=start_date, end=end_date, interval='2m')  # 2-minute interval
