@@ -13,6 +13,24 @@ def closing_price(symbol):
         print(f"Failed to fetch current price for {symbol}")
         return 'Market closed'
     
+def asset_price_history(asset):
+    # Fetch historical data for the last 30 days with a 30-minute interval
+    try:
+        start_date = datetime.now() - timedelta(days=30)
+        historical_data = yf.Ticker(asset).history(start=start_date, end=datetime.now(), interval='30m')
+        
+        # Format the index to a specific string format (e.g., 'YYYY-MM-DD HH:MM')
+        historical_data.index = historical_data.index.strftime('%Y-%m-%d %H:%M')
+        
+        # Return only the date and closing price
+        return historical_data[['Close']]
+    except Exception as e:
+        print(f'Failed to fetch historical data: {e}')
+        return None
+
+
+
+
 # Define the stock symbol and the date range
 # symbol = 'BTC=X'  # EUR/USD currency pair
 # end_date = datetime.now()  # Current date

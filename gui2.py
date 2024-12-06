@@ -1,6 +1,10 @@
 from customtkinter import *
 from PIL import Image, Image
 import asset as ast
+import trading_data as td
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 
 
 
@@ -119,11 +123,41 @@ def signup_confirmation():
 
     balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance}", font=("Helvetica",30), text_color=color)
     balance_label.place(relx=0.5, rely=0.6, anchor="center")
+    
+def plot_data(asset="Bitcoin"):
+    # Fetch the price history
+    assets={
+        'Bitcoin':'BTC-USD',
+        'Ethereum':'ETH-USD',
+        'Gold':'GC=F',
+        'Silver':'SI=F',
+        'EURUSD':'EURUSD=X',
+    }
+    price_history = td.asset_price_history(assets[asset])
+    
+    if price_history is not None:
+        # Create a line plot
+        plt.figure(figsize=(10, 5))
+        plt.plot(price_history.index, price_history['Close'], label='BTC-USD', color='gold')
+        plt.title('Bitcoin Closing Prices Over the Last 30 Days')
+        plt.xlabel('Date and Time')
+        plt.ylabel('Closing Price (USD)')
+        plt.xticks(rotation=45)
+        plt.legend()
+        plt.grid()
+
+        # Show the plot in the CustomTkinter window
+        canvas = FigureCanvasTkAgg(plt.gcf(), master=graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True)
 
 
 
 asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
 asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
+
+graph_frame = CTkFrame(master=app, fg_color="#B8860B")
+graph_frame.place(relx=0.25, rely=0.0, relwidth=0.8, relheight=1.02)
 
 title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
 title.place(relx=0.5, rely=0.1, anchor="center")
@@ -133,15 +167,11 @@ y = 0.2
 for asset, value in assets.items():
     asset_label = CTkLabel(asset_frame, text=f"{asset}", text_color="white", font=("Helvetica", 15))
     asset_label.place(relx=0.1, rely=y, anchor="w")
-    graph_button = CTkButton(asset_frame, text=f"{value:.2f}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white")
+    graph_button = CTkButton(asset_frame, text=f"{value:.2f}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=plot_data(asset))
     graph_button.place(relx=0.9, rely=y, anchor="e")
     y += 0.06
 
-graph_frame = CTkFrame(master=app, fg_color="#B8860B")
-graph_frame.place(relx=0.25, rely=0.0, relwidth=0.8, relheight=1.02)
 
-graph =
-   
 
 
 app.mainloop()
