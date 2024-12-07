@@ -124,7 +124,10 @@ def signup_confirmation():
     balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance}", font=("Helvetica",30), text_color=color)
     balance_label.place(relx=0.5, rely=0.6, anchor="center")
     
-def plot_data(asset="Bitcoin"):
+def plot_data(graph_frame, asset="Bitcoin"):
+    if graph_frame.winfo_children():
+        for widget in graph_frame.winfo_children():
+            widget.destroy()
     # Fetch the price history
     assets={
         'Bitcoin':'BTC-USD',
@@ -138,8 +141,8 @@ def plot_data(asset="Bitcoin"):
     if price_history is not None:
         # Create a line plot
         plt.figure(figsize=(10, 5))
-        plt.plot(price_history.index, price_history['Close'], label='BTC-USD', color='gold')
-        plt.title('Bitcoin Closing Prices Over the Last 30 Days')
+        plt.plot(price_history.index, price_history['Close'], label=f'{assets[asset]}', color='gold', linewidth=2)
+        plt.title(f'{asset} Closing Prices Over the Last 30 Days')
         plt.xlabel('Date and Time')
         plt.ylabel('Closing Price (USD)')
         plt.xticks(rotation=45)
@@ -151,26 +154,64 @@ def plot_data(asset="Bitcoin"):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
 
+    button_frame = CTkFrame(graph_frame)
+    button_frame.place(relx=0.5, rely=0.05, anchor="center")  # Position the button frame at the top center
+
+    # Create buttons
+    buy_button = CTkButton(button_frame, text="BUY", text_color="white", fg_color='darkblue', command=lambda: process_transaction(asset, 'buy', graph_frame))
+    buy_button.pack(side=LEFT, padx=(0, 10))  # Add some padding between buttons
+
+    sell_button = CTkButton(button_frame, text="SELL", text_color="white", fg_color='darkblue', command=lambda: process_transaction(asset, 'sell', graph_frame))
+    sell_button.pack(side=LEFT)
+
+def process_transaction(asset, action, graph_frame):
+    transaction_frame = CTkFrame(graph_frame)
+    transaction_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.5, relheight=0.5)
+
+    title_label = CTkLabel(transaction_frame, text=f"{action.upper()} {asset.upper()}", font=("Helvetica", 45))
+    title_label.place(relx=0.5, rely=0.3, anchor="center")
+
+    amount_label = CTkLabel(transaction_frame, text="Enter Quantity:", font=("Helvetica", 20))
+    amount_label.place(relx=0.5, rely=0.5, anchor="center")
+
+    amount_entry = CTkEntry(transaction_frame)
+    amount_entry.place(relx=0.5, rely=0.6, anchor="center")
+
+    confirm_button = CTkButton(transaction_frame, text="Confirm", font=("Helvetica", 20), command=lambda: confirm_transaction(asset, action, amount_entry.get(), transaction_frame))
+    confirm_button.place(relx=0.5, rely=0.7, anchor="center")
+
+def confirm_transaction(asset, action, amount, transaction_frame):
+    transaction_frame.destroy()
+    pass
+
+    
 
 
-asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
-asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
+def home_page():
+    asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
+    asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
 
-graph_frame = CTkFrame(master=app, fg_color="#B8860B")
-graph_frame.place(relx=0.25, rely=0.0, relwidth=0.8, relheight=1.02)
+    graph_frame = CTkFrame(master=app, fg_color="#B8860B")
+    graph_frame.place(relx=0.25, rely=0.0, relwidth=0.8, relheight=1.02)
 
-title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
-title.place(relx=0.5, rely=0.1, anchor="center")
-assets = ast.Asset().get_values()
-y = 0.2
+    title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
+    title.place(relx=0.5, rely=0.1, anchor="center")
+    assets = ast.Asset().get_values()
+    y = 0.2
 
-for asset, value in assets.items():
-    asset_label = CTkLabel(asset_frame, text=f"{asset}", text_color="white", font=("Helvetica", 15))
-    asset_label.place(relx=0.1, rely=y, anchor="w")
-    graph_button = CTkButton(asset_frame, text=f"{value:.2f}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=plot_data(asset))
-    graph_button.place(relx=0.9, rely=y, anchor="e")
-    y += 0.06
+    for asset, value in assets.items():
+        asset_label = CTkLabel(asset_frame, text=f"{asset}", text_color="white", font=("Helvetica", 15))
+        asset_label.place(relx=0.1, rely=y, anchor="w")
+        try: 
+            graph_button = CTkButton(asset_frame, text=f"{value:.2f}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=lambda asset=asset: plot_data(graph_frame, asset))
+        except:
+                graph_button = CTkButton(asset_frame, text=f"{value}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=lambda asset=asset: plot_data(graph_frame, asset))
+        graph_button.place(relx=0.9, rely=y, anchor="e")
+        y += 0.06
 
+    
+
+home_page()
 
 
 

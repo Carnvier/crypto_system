@@ -16,11 +16,11 @@ def closing_price(symbol):
 def asset_price_history(asset):
     # Fetch historical data for the last 30 days with a 30-minute interval
     try:
-        start_date = datetime.now() - timedelta(days=30)
+        start_date = datetime.now() - timedelta(days=3)
         historical_data = yf.Ticker(asset).history(start=start_date, end=datetime.now(), interval='30m')
         
         # Format the index to a specific string format (e.g., 'YYYY-MM-DD HH:MM')
-        historical_data.index = historical_data.index.strftime('%Y-%m-%d %H:%M')
+        historical_data.index = historical_data.index.strftime('%d %H:%M')
         
         # Return only the date and closing price
         return historical_data[['Close']]
