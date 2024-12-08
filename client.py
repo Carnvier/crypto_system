@@ -1,61 +1,45 @@
 import socket, pickle
 import time
 import portfolio as p
+from gui import setup_gui
+
+
 
 condition = True
 
-def display_account():
-    print("*"*10, "Welcome to DGTraders", "*"*10 )
-    account = input("Do you have an account? (y/n): ")
-    # collecting data for account creation
-    if account.lower().startswith("n"):
-        print("Lets get you started...")
-        message = "signup"
-        s.send(message.encode("utf-8"))
-        user_name = input("Please enter your username: ")
-        while True:
-            password = input("Please enter your password: ")
-            confirm_password = input("Please re-enter your password: ")
-            if confirm_password == password:
-                break
-            if confirm_password != password:
-                print("Passwords do not match!")
-                continue
-        deposit = input("Please enter your deposit: ")
+def signup(user_name, password, deposit):
 
-        message = f"{user_name}, {password}, {deposit}"
-        s.send(message.encode("utf-8"))
-        response = s.recv(BUFSIZE)
+    message = "signup"
+    s.send(message.encode("utf-8"))
+    message = f"{user_name}, {password}, {deposit}"
+    s.send(message.encode("utf-8"))
+    response = s.recv(BUFSIZE)
 
-        # printing response from server
-        try:
-            user_name, password, balance = response.split(',')
-            print("Account successfully created") 
-            print(f"Welcome {user_name}! You have a current balance of {balance}.")
-            return user_name, password
-        except:
-                print(response)
-                # if account creation fails, tells user to try again.
-                return display_account()
+    try:
+        user_name, password, balance = response.split(',')
+        print("Account successfully created") 
+        print(f"Welcome {user_name}! You have a current balance of {balance}.")
+        return f"{user_name}, {password}, {balance}"
+    except:
+        print(response)
+        # if account creation fails, tells user to try again.
+        return None
+    
 
-    elif account.lower().startswith("y"):    
-        message = f'login'
-        s.send(message.encode('utf-8'))
-        user_name = input("Please enter your username: ")
-        password = input("Please enter your password: ")
-        message = f'{user_name}, {password}'
-        s.send(message.encode('utf-8'))
-        balance = s.recv(BUFSIZE)
-        try:
-            balance = float(balance.decode('utf-8'))
-            print(f'Your current balance: {balance:.2f}')
-            return user_name, password
-        except:
-            print(f'Your password or username is incorrect. Please try again')
-            return display_account()
-    else:
-        print("Invalid option. Please try again.")
-        return display_account()
+def login(user_name, password):
+    message = f'login'
+    s.send(message.encode('utf-8'))
+    message = f'{user_name}, {password}'
+    s.send(message.encode('utf-8'))
+    balance = s.recv(BUFSIZE)
+    try:
+        balance = float(balance.decode('utf-8'))
+        print(f'Your current balance: {balance:.2f}')
+        return f"{user_name}, {password}, {balance}"
+    except:
+        print(f'Your password or username is incorrect. Please try again')
+        return None
+
 
 def view_assets():
     assets = s.recv(BUFSIZE)
@@ -93,21 +77,32 @@ def withdraw_funds(user_name, password, amount):
 
 
 def execute_trade(user_name, password, asset, quantity, action):
-    message = f"{user_name}, {password}, {asset}, {quantity}, {action}"
-    message = message.encode("utf-8")
-    s.send(message)
-    
+    message = "3"
+    s.send(message.encode("utf-8"))
+    try:
+        message = f"{user_name}, {password}, {asset}, {quantity}, {action}"
+        message = message.encode("utf-8")
+        s.send(message)
+        return True
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
 
 def view_portfolio(user_name, password):
     '''Viewing current holdings'''
+    message = "4"
+    s.send(message.encode("utf-8"))
     message = f'{user_name}, {password}'
     s.send(message.encode("utf-8"))
     data = s.recv(BUFSIZE)
     try:
         data = pickle.loads(data)
         p.Portfolio().view_holdings(user_name, data)
+        
+        return data
     except Exception as e:
         print(f"Error while loading: {e}")
+        return None
 
 def close_trade(user_name, password, holding_id):
     ''''CLosing specified current holding sending data to server and display response from server'''
@@ -141,7 +136,6 @@ def logout(condition):
 
 
 def run(condition):
-    user_name, password = display_account()
     while condition:
         print("Welcome to the Menu")
         print("1. View Asset \n2. Deposit and Withdraw \n3. Trade \n4. View Holdings \n5. Close Holding \n6. Logout")
@@ -171,8 +165,6 @@ def run(condition):
             continue
 
         if option == '3':
-            message = "3"
-            s.send(message.encode("utf-8"))
             view_assets()
             asset = input("Enter the asset you want to trade: ")
             quantity = input("Enter the quantity: ")
@@ -222,6 +214,15 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(ADDRESS)
 print('Connected to server')
 # Running main program
-run(condition)
 
 
+
+client_functions = {
+    "login": login,
+    "signup": signup,
+    "execute_trade": execute_trade,
+    "view_holdings": view_portfolio,
+}
+
+app = setup_gui(client_functions)
+app.mainloop()
