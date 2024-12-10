@@ -63,6 +63,14 @@ def run(condition):
         condition = True
         return condition
 
+    if message == "view_account":
+        message = client.recv(BUFSIZE)
+        message = (message.decode('utf-8'))
+        user_name, password = message.split(',')
+        account = load_account_from_db(user_name.lower().strip(), password.lower().strip())
+        client.sendall(pickle.dumps(account))
+        condition = True
+        return condition
 
     if message == '2':
         message = client.recv(BUFSIZE)
@@ -80,8 +88,6 @@ def run(condition):
 
     if message == '3':
         try:
-            current_assets =  ast.Asset().get_values()
-            client.sendall(pickle.dumps(current_assets))
             message = client.recv(BUFSIZE)
             message = (message.decode('utf-8'))
             print(message)
@@ -96,6 +102,7 @@ def run(condition):
     if message == '4':
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
+        print(f"Here is: \n{message}")
         user_name, password = message.split(',')
         data = db.CryptoHiveDB().read_portfolio(user_name.strip())
         client.sendall(pickle.dumps(data))
@@ -105,27 +112,16 @@ def run(condition):
     
     # close holdings 
     if message == '5':
-        # show holdings
+        # closing selected holding 
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
-        try:
-            user_name, password = message.split(',')
-            data = db.CryptoHiveDB().active_holdings(user_name.strip())
-            client.sendall(pickle.dumps(data))
-
-            # closing selected holding 
-            message = client.recv(BUFSIZE)
-            message = message.decode('utf-8')
-            print(message)
-            user_name, password, holding_id = message.split(',')
-            user_name, password, holding_id = user_name.strip(), password.strip(), int(holding_id)
-            response = p.Portfolio().close_position(user_name, password, holding_id)
-            print(response)
-            client.send(response.encode('utf-8'))
-        except Exception as e:
-            print(f'Error: {e}')
-        condition = True
-        return condition
+        print(message)
+        user_name, password, holding_id = message.split(',')
+        user_name, password, holding_id = user_name.strip(), password.strip(), int(holding_id)
+        response = p.Portfolio().close_position(user_name, password, holding_id)
+        print(response)
+        client.send(response.encode('utf-8'))
+        
 
 
     # logout of account and shutdown client and server

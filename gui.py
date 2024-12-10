@@ -6,16 +6,34 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
 import time
+from datetime import datetime
 
 
 
 def setup_gui(client_functions):
-    # Create a new window
+    '''Create a new window'''
     app = CTk()
     app.title = "CryptoHive Trading Platform"
     app.geometry("1000x650+0+0")
     start_window(app, client_functions)
     return app
+
+
+def nav(username, password, app, client_functions):
+    nav_frame =CTkFrame(master=app, height=25, width=570)
+    nav_frame.place(relx=1, rely=0, anchor="ne" )
+
+    charts_button=CTkButton(master=nav_frame, text="Charts", command=lambda:home_page(username, password, app, client_functions))
+    charts_button.place(relx = 0.0, rely = 0.5, anchor="w")
+
+    holdings_button=CTkButton(master=nav_frame, text="Holdings", command=lambda:view_holdings(app, client_functions, username, password, nav_frame))
+    holdings_button.place(relx = 0.25, rely = 0.5, anchor="w")
+
+    profile_button=CTkButton(master=nav_frame, text="Profile", command=lambda:account_details(app, client_functions, username, password, nav_frame))
+    profile_button.place(relx = 0.5, rely = 0.5, anchor="w")
+
+    logout_button=CTkButton(master=nav_frame, text="Logout", command=lambda:logout(app, client_functions, username, password, nav_frame))
+    logout_button.place(relx = 0.75, rely = 0.5, anchor="w")
 
 
 def start_window(app, client_functions):
@@ -217,10 +235,10 @@ def process_transaction(username, password, asset, action, graph_frame, client_f
     amount_entry = CTkEntry(transaction_frame)
     amount_entry.place(relx=0.5, rely=0.6, anchor="center")
 
-    confirm_button = CTkButton(transaction_frame, text="Confirm", font=("Helvetica", 20), command=lambda: confirm_transaction(username, password, asset, action, amount_entry.get(), transaction_frame, client_functions, app))
+    confirm_button = CTkButton(transaction_frame, text="Confirm", font=("Helvetica", 20), command=lambda: confirm_transaction(username, password, asset, action, amount_entry.get(), transaction_frame, client_functions, app, graph_frame))
     confirm_button.place(relx=0.5, rely=0.7, anchor="center")
 
-def confirm_transaction(username, password, asset, action, amount, transaction_frame, client_functions, app):
+def confirm_transaction(username, password, asset, action, amount, transaction_frame, client_functions, app, graph_frame):
     if transaction_frame.winfo_children():
         for widget in transaction_frame.winfo_children():
             widget.destroy()
@@ -234,7 +252,7 @@ def confirm_transaction(username, password, asset, action, amount, transaction_f
         info_label = CTkLabel(master=transaction_frame, text=message, font=("Helvetica", 20))
         info_label.place(relx=0.5, rely=0.4, anchor="center")
 
-        proceed_button = CTkButton(master=transaction_frame, text="Proceed", font=("Helvetica", 20), command=lambda : view_holdings(app, client_functions, username, password, transaction_frame))
+        proceed_button = CTkButton(master=transaction_frame, text="Proceed", font=("Helvetica", 20), command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
         proceed_button.place(relx=0.5, rely=0.6, anchor="center") 
 
 
@@ -243,11 +261,13 @@ def home_page(username, password, app, client_functions):
         for widget in app.winfo_children():
             widget.destroy()
 
+    nav(username, password, app, client_functions)
+
     asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
     asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
 
     graph_frame = CTkFrame(master=app, fg_color="#B8860B")
-    graph_frame.place(relx=0.25, rely=0.0, relwidth=0.8, relheight=1.02)
+    graph_frame.place(relx=0.25, rely=0.05, relwidth=0.8, relheight=1.02)
 
     title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
     title.place(relx=0.5, rely=0.1, anchor="center")
@@ -264,17 +284,23 @@ def home_page(username, password, app, client_functions):
         graph_button.place(relx=0.9, rely=y, anchor="e")
         y += 0.06
 
-def close_position(id):
-    messagebox.askyesno("Close Postion", "Are you sure you want to close?")
+def close_position(id, username, password, app, nav_frame, client_functions):
+    response = messagebox.askyesno("Close Postion", "Are you sure you want to close?")
+    if response:
+        response = client_functions["close_position"](username, password, id)
+        messagebox.showinfo("Close Position", response)
+    else:
+        messagebox.showerror("Close Position", response)
+    view_holdings(app, client_functions, username, password, nav_frame)
 
-
-def view_holdings(app, client_functions, username, password, transaction_frame):
-    if transaction_frame:
-        transaction_frame.destroy()
-
-    if app.winfo_children():
+def view_holdings(app, client_functions, username, password, nav_frame):
+   
+    if app.winfo_children():    
         for widget in app.winfo_children():
-            widget.destroy()
+            if widget != nav_frame:
+                widget.destroy()
+    
+    
 
     data = client_functions["view_holdings"](username, password)
 
@@ -282,13 +308,13 @@ def view_holdings(app, client_functions, username, password, transaction_frame):
     page_title.place(relx=0.5, rely=0.1, anchor="center")
 
     id_title = CTkLabel(master=app, text="ID", font=("Helvetica",20) )
-    id_title.place(relx=0.05, rely=0.2, anchor="center")
+    id_title.place(relx=0.05, rely=0.2, anchor="w")
 
     date_title = CTkLabel(master=app, text="Date", font=("Helvetica", 20))
-    date_title.place(relx=0.15, rely=0.2, anchor="center")
+    date_title.place(relx=0.15, rely=0.2, anchor="w")
 
     asset_title = CTkLabel(master=app, text="Asset", font=("Helvetica",20) )
-    asset_title.place(relx=0.275, rely=0.2, anchor="center")
+    asset_title.place(relx=0.325, rely=0.2, anchor="w")
 
     action_title = CTkLabel(master=app, text="Action", font=("Helvetica", 20))
     action_title.place(relx=0.45, rely=0.2, anchor="center")
@@ -297,29 +323,30 @@ def view_holdings(app, client_functions, username, password, transaction_frame):
     quantity_title.place(relx=0.55, rely=0.2, anchor="center")
 
     cost_title = CTkLabel(master=app, text="Total Cost", font=("Helvetica", 20))
-    cost_title.place(relx=0.7, rely=0.2, anchor="center")
+    cost_title.place(relx=0.65, rely=0.2, anchor="w")
 
     close_title = CTkLabel(master=app, text="Cost Postion", font=("Helvetica", 20))
-    close_title.place(relx=0.85, rely=0.2, anchor="center")
+    close_title.place(relx=0.85, rely=0.2, anchor="w")
 
-    database = [()]
-
+    count = 0
     y = 0.25
+
     try: 
         if data:
             for i, line in enumerate(data):
                 id, date, user_name, action, asset, quantity, cost, holding = data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6], data[i][7]  
                     # Make sure only active holdings are printed 
+                date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
                 if holding:
                     count += 1
                     id_label = CTkLabel(master=app, text=f"{id}", font=("Helvetica", 15))
-                    id_label.place(relx=0.005, rely=y, anchor="w")
+                    id_label.place(relx=0.05, rely=y, anchor="w")
                     
-                    date_label = CTkLabel(master=app, text=f"{date}", font=("Helvetica", 15))
+                    date_label = CTkLabel(master=app, text=f"{date.strftime("%Y-%m-%d %H:%M")}", font=("Helvetica", 15))
                     date_label.place(relx=0.15, rely=y, anchor="w")
 
                     asset_label = CTkLabel(master=app, text=f"{asset}", font=("Helvetica", 15))
-                    asset_label.place(relx=0.275, rely=y, anchor="w")
+                    asset_label.place(relx=0.325, rely=y, anchor="w")
 
                     action_label = CTkLabel(master=app, text=f"{action}", font=("Helvetica", 15))
                     action_label.place(relx=0.45, rely=y, anchor="w")
@@ -328,27 +355,39 @@ def view_holdings(app, client_functions, username, password, transaction_frame):
                     quantity_label.place(relx=0.55, rely=y, anchor="w")
 
                     cost_label = CTkLabel(master=app, text=f"{cost}", font=("Helvetica", 15))
-                    cost_label.place(relx=0.7, rely=y, anchor="w")
+                    cost_label.place(relx=0.65, rely=y, anchor="w")
 
-                    close_position_button = CTkButton(master=app, text=f"Close", font=("Helvetica", 15), command=lambda id=id: close_position(id))
+                    close_position_button = CTkButton(master=app, text=f"Close", font=("Helvetica", 15), command=lambda id=id: close_position(id, username, password, app, nav_frame, client_functions))
                     close_position_button.place(relx=0.85, rely=y, anchor="w")
+                    y += 0.07
     except Exception as e:
         print(f"Error: {e}")
 
-def account_details():
+def account_details(app, client_functions, username, password, nav_frame):
+    if app.winfo_children():    
+        for widget in app.winfo_children():
+            if widget != nav_frame:
+                widget.destroy()
+
+    try:
+        response = client_functions["view_account"](username, password)   
+        user_name, password, balance = response[0][1], response[0][2], response[0][3]
+    except:
+        messagebox.showerror("Error", f"{response}")
+    
     page_title = CTkLabel(master=app, text="Account Details", font=("Helvetica", 45))
-    page_title.place(relx=0.5, rely=0.1, anchor="center")
+    page_title.place(relx=0.5, rely=0.15, anchor="center")
 
-    username_label = CTkLabel(master=app, text="Username", font=("Helvetica", 20))
-    username_label.place(relx=0.25, rely=0.2, anchor="center")
+    username_label = CTkLabel(master=app, text=f"Username: {username}", font=("Helvetica", 30))
+    username_label.place(relx=0.2, rely=0.3, anchor="center")
 
-    balance = CTkLabel(master=app, text="Balance", font=("Helvetica", 20))
-    balance.place(relx=0.75, rely=0.2, anchor="center")
+    balance = CTkLabel(master=app, text=f"Balance: {balance}", font=("Helvetica", 30))
+    balance.place(relx=0.75, rely=0.3, anchor="center")
 
-    withdraw_label = CTkLabel(master=app, text="Withdraw", font=("Helvetica", 30))
+    withdraw_label = CTkLabel(master=app, text="Withdraw", font=("Helvetica", 25))
     withdraw_label.place(relx=0.25, rely=0.5, anchor="center")
 
-    deposit_label = CTkLabel(master=app, text="Deposit", font=("Helvetica", 30))
+    deposit_label = CTkLabel(master=app, text="Deposit", font=("Helvetica", 25))
     deposit_label.place(relx=0.75, rely=0.5, anchor="center")
 
     withdraw_amount_entry = CTkEntry(master=app, )
@@ -357,16 +396,31 @@ def account_details():
     deposit_amount_entry = CTkEntry(master=app, )
     deposit_amount_entry.place(relx=0.75, rely=0.6, anchor="center")
 
-    withdraw_button = CTkButton(master=app, text="Withdraw", font=("Helvetica", 20), command=lambda : deposit_withdraw("withdraw", withdraw_amount_entry.get()))
+    withdraw_button = CTkButton(master=app, text="Withdraw", font=("Helvetica", 20), command=lambda : deposit_withdraw(username, password, "withdraw", client_functions, app, nav_frame, withdraw_amount_entry.get()))
     withdraw_button.place(relx=0.25, rely=0.7, anchor="center")
 
-    deposit_button = CTkButton(master=app, text="Deposit", font=("Helvetica", 20), command=lambda : deposit_withdraw('deposit', deposit_amount_entry.get()))
+    deposit_button = CTkButton(master=app, text="Deposit", font=("Helvetica", 20), command=lambda : deposit_withdraw(username, password, 'deposit', client_functions, app, nav_frame, deposit_amount_entry.get()))
     deposit_button.place(relx=0.75, rely=0.7, anchor="center")
 
 
-def deposit_withdraw(action, amount=0):
-    messagebox.askyesno(f"{action}", f"Do you want to {action} {amount}")
+def deposit_withdraw(username, password, action, client_functions, app, nav_frame, amount=0):
+    response = messagebox.askyesno(f"{action}", f"Do you want to {action} {amount}")
+    if response:
+        if action.lower() == "withdraw":
+            response = client_functions["withdraw_funds"](username, password, amount)
+        elif action.lower() == "deposit":
+            response = client_functions["deposit_funds"](username, password, amount)
+        messagebox.showinfo("Transaction", response)
+    else:
+        messagebox.showerror("Transaction", "Transaction failed please try again later.")
+        account_details(app, client_functions, username, password, nav_frame)
+    
 
+def logout(app, client_functions, username, password, nav_frame):
+    logout = messagebox.askyesno("Logout", "Are you sure you want to logout?")
+    if logout:
+        client_functions['logout']
+        app.destroy()
 
-
-
+    else: 
+        home_page(username, password, app, client_functions, nav_frame)

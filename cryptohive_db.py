@@ -129,3 +129,8 @@ class CryptoHiveDB():
                 self.conn.close()
 
 
+details = ('denzel', 4)
+CryptoHiveDB().close_holding(details)
+
+
+print(CryptoHiveDB().active_holdings('denzel'))

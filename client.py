@@ -37,9 +37,16 @@ def login(user_name, password):
         print(f'Your current balance: {balance:.2f}')
         return f"{user_name}, {password}, {balance}"
     except:
-        print(f'Your password or username is incorrect. Please try again')
-        return None
+        return "Error fetching account information"
 
+def view_account(username, password):
+    message = "view_account"
+    s.send(message.encode("utf-8"))
+    message = f"{username}, {password}"
+    s.send(message.encode("utf-8"))
+    response = s.recv(BUFSIZE)
+    response = pickle.loads(response)
+    return response
 
 def view_assets():
     assets = s.recv(BUFSIZE)
@@ -53,6 +60,8 @@ def view_assets():
 
 
 def add_funds(user_name, password, amount):
+    message = "2"
+    s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, deposit, {amount}"
     s.send(message.encode("utf-8"))
     try:
@@ -65,6 +74,8 @@ def add_funds(user_name, password, amount):
 
 
 def withdraw_funds(user_name, password, amount):
+    message = "2"
+    s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, withdraw, {amount}"
     s.send(message.encode("utf-8"))
     try:
@@ -87,7 +98,7 @@ def execute_trade(user_name, password, asset, quantity, action):
     except Exception as e:
         print(f"Error: {e}")
         return False
-
+ 
 def view_portfolio(user_name, password):
     '''Viewing current holdings'''
     message = "4"
@@ -97,7 +108,7 @@ def view_portfolio(user_name, password):
     data = s.recv(BUFSIZE)
     try:
         data = pickle.loads(data)
-        p.Portfolio().view_holdings(user_name, data)
+        # p.Portfolio().view_holdings(user_name, data)
         
         return data
     except Exception as e:
@@ -106,6 +117,8 @@ def view_portfolio(user_name, password):
 
 def close_trade(user_name, password, holding_id):
     ''''CLosing specified current holding sending data to server and display response from server'''
+    message = "5"
+    s.send(message.encode("utf-8"))
     message =  f'{user_name}, {password}, {holding_id}'
     s.send(message.encode("utf-8"))
     # displaying response from server
@@ -121,7 +134,7 @@ def close_trade(user_name, password, holding_id):
     return condition
 
 
-def logout(condition):
+def logout():
     confirm = input("Are you sure you want to logout?" )
     if confirm.lower().startswith("y"):
         message = "6"
@@ -129,11 +142,9 @@ def logout(condition):
         response = s.recv(BUFSIZE)
         print("You have been logged out")
         s.close()
-        condition = False
-    else: 
-        condition = True
-        return condition
 
+
+    
 
 def run(condition):
     while condition:
@@ -181,8 +192,7 @@ def run(condition):
 
         # close a specified holding
         if option == '5':
-            message = "5"
-            s.send(message.encode("utf-8"))
+            
             view_portfolio(user_name, password)
             # check if input is int
             while True:
@@ -220,8 +230,13 @@ print('Connected to server')
 client_functions = {
     "login": login,
     "signup": signup,
+    "withdraw_funds": withdraw_funds,
+    "deposit_funds": add_funds,
     "execute_trade": execute_trade,
+    "view_account": view_account,
     "view_holdings": view_portfolio,
+    "close_position": close_trade,
+    "logout": logout,
 }
 
 app = setup_gui(client_functions)
