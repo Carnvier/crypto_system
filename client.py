@@ -67,10 +67,9 @@ def add_funds(user_name, password, amount):
     try:
         balance = s.recv(BUFSIZE)
         balance = pickle.loads(balance)
-        print("Funds successfully deposited")
-        print(f"Your new balance is: {balance:.2f}")
+        return(f"Funds successfully deposited Your new balance is: {balance:.2f}")
     except Exception as e:
-        print(f"Error: {e}")
+        return(f"Error: {e}")
 
 
 def withdraw_funds(user_name, password, amount):
@@ -81,10 +80,9 @@ def withdraw_funds(user_name, password, amount):
     try:
         balance = s.recv(BUFSIZE)
         balance = pickle.loads(balance)
-        print("Funds successfully withdrawn")
-        print(f"Your new balance is: {balance:.2f}")
+        return(f"Funds successfully withdrawnYour new balance is: {balance:.2f}")
     except Exception as e:
-        print(f"Error: {e}")
+        return(f"Error: {e}")
 
 
 def execute_trade(user_name, password, asset, quantity, action):
@@ -105,8 +103,8 @@ def view_portfolio(user_name, password):
     s.send(message.encode("utf-8"))
     message = f'{user_name}, {password}'
     s.send(message.encode("utf-8"))
-    data = s.recv(BUFSIZE)
     try:
+        
         data = pickle.loads(data)
         # p.Portfolio().view_holdings(user_name, data)
         
@@ -127,11 +125,10 @@ def close_trade(user_name, password, holding_id):
         response = response.decode("utf-8")
         print(response)
         profit, total, balance = response.split(',')
-        print(f"PROFIT: {profit}\nTotal: {total}\nBalance: {balance}")
-    except Exception as e:
-        print(f"Error: {e}")
-    condition = True
-    return condition
+        return(f"PROFIT: {profit}\nTotal: {total}\nBalance: {balance}")
+    except:
+        return response
+    
 
 
 def logout():

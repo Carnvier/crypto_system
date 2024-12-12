@@ -121,7 +121,8 @@ def run(condition):
         response = p.Portfolio().close_position(user_name, password, holding_id)
         print(response)
         client.send(response.encode('utf-8'))
-        
+        condition = True
+        return condition
 
 
     # logout of account and shutdown client and server

@@ -57,6 +57,9 @@ def login(app, client_functions):
         for widget in app.winfo_children():
             widget.destroy()
 
+    signup_button = CTkButton(app, text="Login", font=("Helvetica", 45), command=lambda : signup(app, client_functions))
+    signup_button.place(relx=1, rely=0.1, anchor="e")
+
     title = CTkLabel(master=app, text="Login", font=("Helvetica", 45))
     title.place(relx=0.5, rely=0.3, anchor="center")
     
@@ -79,6 +82,9 @@ def signup(app, client_functions):
     if app.winfo_children():
         for widget in app.winfo_children():
             widget.destroy()
+
+    login_button = CTkButton(app, text="Login", font=("Helvetica", 45), command=lambda : login(app, client_functions))
+    login_button.place(relx=1, rely=0.1, anchor="e")
 
     title = CTkLabel(master=app, text="Signup", font=("Helvetica", 45))
     title.place(relx=0.5, rely=0.3, anchor="center")
@@ -179,7 +185,7 @@ def signup_confirmation(app, username, password, deposit, client_functions):
         proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: login(app, client_functions)) 
         proceed_button.place(relx=0.5, rely=0.7, anchor="center")
     except:
-        signup_error = CTkLabel(master=app, text="Error signing up. Please try again.", font=("Helvetica", 45), text_color="red")
+        signup_error = CTkLabel(master=app, text=f"{response}", font=("Helvetica", 45), text_color="red")
         signup_error.place(relx=0.5, rely=0.3, anchor="center")
     
 def plot_data(username, password, graph_frame, client_functions, app, asset="Bitcoin",):
@@ -283,6 +289,8 @@ def home_page(username, password, app, client_functions):
                 graph_button = CTkButton(asset_frame, text=f"{value}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
         graph_button.place(relx=0.9, rely=y, anchor="e")
         y += 0.06
+
+    
 
 def close_position(id, username, password, app, nav_frame, client_functions):
     response = messagebox.askyesno("Close Postion", "Are you sure you want to close?")
@@ -413,7 +421,7 @@ def deposit_withdraw(username, password, action, client_functions, app, nav_fram
         messagebox.showinfo("Transaction", response)
     else:
         messagebox.showerror("Transaction", "Transaction failed please try again later.")
-        account_details(app, client_functions, username, password, nav_frame)
+    account_details(app, client_functions, username, password, nav_frame)
     
 
 def logout(app, client_functions, username, password, nav_frame):
