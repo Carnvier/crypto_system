@@ -102,7 +102,10 @@ class CryptoHiveDB():
                 '''Read the portfolio from the database'''
                 self.c.execute("SELECT * FROM Portfolio WHERE username = ?", (username,))
                 portfolio =  self.c.fetchall()
-                return portfolio
+                if portfolio:
+                        return portfolio
+                else:
+                        return None
         
         def active_holdings(self, username):
                 '''Read the active holdings for the specified user'''

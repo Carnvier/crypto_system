@@ -309,6 +309,7 @@ def view_holdings(app, client_functions, username, password, nav_frame):
                 widget.destroy()
     
     
+    holding_frame = CTkScrollableFrame(master = app, border_color="#")
 
     data = client_functions["view_holdings"](username, password)
 

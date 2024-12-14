@@ -104,10 +104,8 @@ def view_portfolio(user_name, password):
     message = f'{user_name}, {password}'
     s.send(message.encode("utf-8"))
     try:
-        
         data = pickle.loads(data)
         # p.Portfolio().view_holdings(user_name, data)
-        
         return data
     except Exception as e:
         print(f"Error while loading: {e}")
