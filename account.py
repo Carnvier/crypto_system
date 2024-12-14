@@ -12,7 +12,7 @@ class Account():
         account =  (self.username, self.password, self.balance)
         response = db.CryptoHiveDB().account_insert_data(account)
         if response.lower() == "success":
-            return self.username, self.password, self.balance
+            return f'{self.username}, {self.password}, {self.balance}'
         else: 
             return f"{response}"
         

@@ -45,10 +45,13 @@ def run(message, condition):
     # creating new account
     elif message == 'signup':
         message = client.recv(BUFSIZE)
-        user_name, password, balance = message.decode('utf-8').split(',')
+        message = message.decode('utf-8')
+        user_name, password, balance = message.split(',')
         user = acc.Account(user_name.lower().strip(), password.lower().strip(), balance.lower().strip())
         response = user.create_account()
         client.send(response.encode('utf-8'))
+        condition = True
+        return condition
 
 
     elif message == '1':

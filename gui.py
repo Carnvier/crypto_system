@@ -64,13 +64,15 @@ def start_window(app, client_functions):
     signup_button = CTkButton(master=app, text="Sign Up", font=("Helvetica", 20), command= lambda : signup(app, client_functions, wallpaper_frame))
     signup_button.place(relx=0.75, rely=0.65, anchor="center")
 
+# login function
 def login(app, client_functions, wallpaper_frame):
+    '''collecting data for login'''
     if app.winfo_children():
         for widget in app.winfo_children():
             if widget != wallpaper_frame:
                 widget.destroy()
 
-    signup_button = CTkButton(app, text="Signup", font=("Helvetica", 20), command=lambda : signup(app, client_functions))
+    signup_button = CTkButton(app, text="Signup", font=("Helvetica", 20), command=lambda : signup(app, client_functions, wallpaper_frame))
     signup_button.place(relx=1, rely=0, anchor="ne")
 
     title = CTkLabel(master=app, text="Login", font=("Helvetica", 45))
@@ -80,18 +82,19 @@ def login(app, client_functions, wallpaper_frame):
     username_label.place(relx=0.65, rely=0.4, anchor="w")
 
     username_entry = CTkEntry(master=app)
-    username_entry.place(relx=0.8, rely=0.4, anchor="center")
+    username_entry.place(relx=0.85, rely=0.4, anchor="center")
 
     password_label = CTkLabel(master=app, text="Password:", font=("Helvetica", 20))
     password_label.place(relx=0.65, rely=0.5, anchor="w")
     
     password_entry = CTkEntry(master=app, show="*")
-    password_entry.place(relx=0.8, rely=0.5, anchor="center")
+    password_entry.place(relx=0.85, rely=0.5, anchor="center")
     
     login_button = CTkButton(master=app, text="Login", font=("Helvetica", 20), command=lambda: login_confirmation(app, username_entry.get(), password_entry.get(), client_functions, wallpaper_frame))
     login_button.place(relx=0.75, rely=0.6, anchor="center")
 
 def login_confirmation(app, username, password, client_functions, wallpaper_frame):
+    '''confirmation of user's login details'''
     if app.winfo_children():
         for widget in app.winfo_children():
             if widget != wallpaper_frame:
@@ -112,7 +115,7 @@ def login_confirmation(app, username, password, client_functions, wallpaper_fram
             else:
                 color = "red"
 
-            balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance:.2f}", font=("Helvetica",15), text_color=color)
+            balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance:.2f}", font=("Helvetica",18), text_color=color)
             balance_label.place(relx=0.75, rely=0.6, anchor="center")
             
             proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: home_page(username, password, app, client_functions)) 
@@ -128,46 +131,50 @@ def login_confirmation(app, username, password, client_functions, wallpaper_fram
         try_again_button = CTkButton(master=app, text="Try Again", font=("Helvetica", 20), command=lambda: login(app, client_functions, wallpaper_frame)) 
         try_again_button.place(relx=0.75, rely=0.5, anchor="center")
 
-def signup(app, client_functions):
+# signup function
+def signup(app, client_functions, wallpaper_frame):
+    '''collecting data for account setup'''
     if app.winfo_children():
         for widget in app.winfo_children():
-            widget.destroy()
+            if widget != wallpaper_frame:
+                widget.destroy()
 
-    login_button = CTkButton(app, text="Login", font=("Helvetica", 45), command=lambda : login(app, client_functions))
-    login_button.place(relx=1, rely=0.1, anchor="e")
+    login_button = CTkButton(app, text="Login", font=("Helvetica", 20), command=lambda : login(app, client_functions, wallpaper_frame))
+    login_button.place(relx=1, rely=0, anchor="ne")
 
     title = CTkLabel(master=app, text="Signup", font=("Helvetica", 45))
-    title.place(relx=0.5, rely=0.3, anchor="center")
+    title.place(relx=0.75, rely=0.3, anchor="center")
     
     username_label = CTkLabel(master=app, text="Username:", font=("Helvetica", 20))
-    username_label.place(relx=0.35, rely=0.4, anchor="w")
+    username_label.place(relx=0.55, rely=0.4, anchor="w")
 
     username_entry = CTkEntry(master=app)
-    username_entry.place(relx=0.69, rely=0.4, anchor="e")
+    username_entry.place(relx=0.85, rely=0.4, anchor="center")
 
     password_label = CTkLabel(master=app, text="Password:", font=("Helvetica", 20))
-    password_label.place(relx=0.35, rely=0.5, anchor="w")
+    password_label.place(relx=0.55, rely=0.5, anchor="w")
     
     password_entry = CTkEntry(master=app, show="*")
-    password_entry.place(relx=0.69, rely=0.5, anchor="e")
+    password_entry.place(relx=0.85, rely=0.5, anchor="center")
 
     confirm_password_label = CTkLabel(master=app, text="Confirm Password:", font=("Helvetica", 20))
-    confirm_password_label.place(relx=0.35, rely=0.6, anchor="w")
+    confirm_password_label.place(relx=0.55, rely=0.6, anchor="w")
     
     confirm_password_entry = CTkEntry(master=app, show="*")
-    confirm_password_entry.place(relx=0.69, rely=0.6, anchor="e")
+    confirm_password_entry.place(relx=0.85, rely=0.6, anchor="center")
 
     initial_deposit_label = CTkLabel(master=app, text="Initial Deposit:", font=("Helvetica", 20))
-    initial_deposit_label.place(relx=0.35, rely=0.7, anchor="w")
+    initial_deposit_label.place(relx=0.55, rely=0.7, anchor="w")
     
     initial_deposit_entry = CTkEntry(master=app, validate="key", validatecommand=(app.register(validate_initial_deposit), "%P"))
-    initial_deposit_entry.place(relx=0.69, rely=0.7, anchor="e")
+    initial_deposit_entry.place(relx=0.85, rely=0.7, anchor="center")
     
     
-    signup_button = CTkButton(master=app, text="Signup", font=("Helvetica", 20), command=lambda: signup_confirmation(app, username_entry.get(), password_entry.get(), initial_deposit_entry.get(), client_functions))
-    signup_button.place(relx=0.5, rely=0.8, anchor="center")
+    signup_button = CTkButton(master=app, text="Signup", font=("Helvetica", 20), command=lambda: signup_confirmation(app, username_entry.get(), password_entry.get(), confirm_password_entry.get(), initial_deposit_entry.get(), client_functions, wallpaper_frame))
+    signup_button.place(relx=0.75, rely=0.8, anchor="center")
 
 def validate_initial_deposit(value):
+    '''validating if user deposit input is numeric'''
     if value == "":
         return True  
     try:
@@ -180,32 +187,39 @@ def validate_initial_deposit(value):
 
     
 
-def signup_confirmation(app, username, password, deposit, client_functions):
+def signup_confirmation(app, username, password, password_2nd, deposit, client_functions, wallpaper_frame):
+    '''confirming if user account has been created'''
+    if password != password_2nd:
+        messagebox.showerror("Password", "Password do not match")
+        signup(app, client_functions, wallpaper_frame)
+        return
+         
     if app.winfo_children():
         for widget in app.winfo_children():
-            widget.destroy()
+            if widget != wallpaper_frame:
+                widget.destroy()
 
     response = client_functions["signup"](username, password, deposit)
     try:
         username, password, balance = response.split(",")
-        balance = float(deposit)
+        balance = float(balance)
         signup_confirmed = CTkLabel(master=app, text="Signup Successful", font=("Helvetica", 45), text_color="gold")
-        signup_confirmed.place(relx=0.5, rely=0.3, anchor="center")
+        signup_confirmed.place(relx=0.75, rely=0.3, anchor="center")
         welcome_msg = CTkLabel(master=app, text=f"Welcome {username}", font=("Helvetica", 35))
-        welcome_msg.place(relx=0.5, rely=0.45, anchor="center")
+        welcome_msg.place(relx=0.75, rely=0.45, anchor="center")
 
         if balance > 0:
             color = "green"
         else:
             color = "red"
 
-        balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance}", font=("Helvetica",30), text_color=color)
-        balance_label.place(relx=0.5, rely=0.6, anchor="center")
-        proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: login(app, client_functions)) 
-        proceed_button.place(relx=0.5, rely=0.7, anchor="center")
+        balance_label = CTkLabel(master=app, text=f"Your current balance: ${balance}", font=("Helvetica",20), text_color=color)
+        balance_label.place(relx=0.75, rely=0.6, anchor="center")
+        proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: login(app, client_functions, wallpaper_frame)) 
+        proceed_button.place(relx=0.75, rely=0.7, anchor="center")
     except:
         signup_error = CTkLabel(master=app, text=f"{response}", font=("Helvetica", 45), text_color="red")
-        signup_error.place(relx=0.5, rely=0.3, anchor="center")
+        signup_error.place(relx=0.75, rely=0.3, anchor="center")
     
 def plot_data(username, password, graph_frame, client_functions, app, asset="Bitcoin",):
     if graph_frame.winfo_children():

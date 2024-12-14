@@ -24,6 +24,7 @@ def signup(user_name, password, deposit):
     message = f"{user_name}, {password}, {deposit}"
     s.send(message.encode("utf-8"))
     response = s.recv(BUFSIZE)
+    response = response.decode("utf-8")
 
     try:
         user_name, password, balance = response.split(',')
@@ -32,8 +33,7 @@ def signup(user_name, password, deposit):
         return f"{user_name}, {password}, {balance}"
     except:
         print(response)
-        # if account creation fails, tells user to try again.
-        return None
+        return response
     
 
 
