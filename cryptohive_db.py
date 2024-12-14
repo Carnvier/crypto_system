@@ -93,8 +93,11 @@ class CryptoHiveDB():
 
         def read_account(self, username, password):
                 '''Read user account data'''
-                self.c.execute("SELECT * FROM Accounts WHERE username = ? and password = ?", (username, password))
-                account =  self.c.fetchall()
+                try:
+                        self.c.execute("SELECT * FROM Accounts WHERE username = ? and password = ?", (username, password))
+                        account =  self.c.fetchall()
+                except Exception as e:
+                        account = 'Invalid username or password'
                 return account
 
 

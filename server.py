@@ -4,38 +4,10 @@ import account as acc, asset as ast, portfolio as p, cryptohive_db as db
 condition = True
 
 def load_account_from_db(username, password):
+    '''Get user account information from database'''
     account = db.CryptoHiveDB().read_account(username, password)
     return account
-
-def authentication():
-    message = client.recv(BUFSIZE)
-    print(message.decode('utf-8'))
-
-    # creating new account
-    if message.decode('utf-8') == 'signup':
-        message = client.recv(BUFSIZE)
-        user_name, password, balance = message.decode('utf-8').split(',')
-        user = acc.Account(user_name.lower().strip(), password.lower().strip(), balance.lower().strip())
-        response = user.create_account()
-        client.send(response.encode('utf-8'))
-
-    # authentication for login
-    elif message.decode('utf-8') == 'login':
-        message = client.recv(BUFSIZE)
-        message = message.decode('utf-8')
-        user_name, password = message.split(',')
-        print(message)
-        account = load_account_from_db(user_name.strip(), password.strip())
-        print(account)
-        # send account balance to server
-        try:
-            balance = account[0][3]
-            response = f'{balance}'
-            client.send(response.encode('utf-8'))
-        # if no account balance send an error message
-        except:
-            response = 'Failed to get balance. Please try again.'
-            client.send(response.encode('utf-8'))
+    
 
 def update_account_balance(username, password, action, amount):
     account = acc.Account(username, password)
@@ -50,10 +22,36 @@ def process_trade(username, password, asset, quantity, action):
         process.sell_asset(username, password, asset, quantity)
     process.save_transaction(username, asset, quantity, action)
 
-def run(condition):
-    message = client.recv(BUFSIZE)
-    message =message.decode('utf-8')
-    if message == '1':
+
+
+def run(message, condition):
+    # authentication for login
+    if message == 'login':
+        message = client.recv(BUFSIZE)
+        message = message.decode('utf-8')
+        user_name, password = message.split(',')
+        account = load_account_from_db(user_name.strip(), password.strip())
+        # send account balance to server
+        try:
+            balance = account[0][3]
+            response = f'{balance}'
+            client.send(response.encode('utf-8'))
+        # if no account balance send an error message
+        except:
+            client.send(response.encode('utf-8'))
+        condition = True
+        return condition
+
+    # creating new account
+    elif message == 'signup':
+        message = client.recv(BUFSIZE)
+        user_name, password, balance = message.decode('utf-8').split(',')
+        user = acc.Account(user_name.lower().strip(), password.lower().strip(), balance.lower().strip())
+        response = user.create_account()
+        client.send(response.encode('utf-8'))
+
+
+    elif message == '1':
         try:
             current_assets =  ast.Asset().get_values()
             print(current_assets)
@@ -63,7 +61,7 @@ def run(condition):
         condition = True
         return condition
 
-    if message == "view_account":
+    elif message == "view_account":
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
         user_name, password = message.split(',')
@@ -72,7 +70,7 @@ def run(condition):
         condition = True
         return condition
 
-    if message == '2':
+    elif message == '2':
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
         try:
@@ -86,7 +84,7 @@ def run(condition):
         return condition
 
 
-    if message == '3':
+    elif message == '3':
         try:
             message = client.recv(BUFSIZE)
             message = (message.decode('utf-8'))
@@ -99,7 +97,7 @@ def run(condition):
         return condition
 
     #  get current holdings for specified user
-    if message == '4':
+    elif message == '4':
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
         print(f"Here is: \n{message}")
@@ -111,7 +109,7 @@ def run(condition):
     
     
     # close holdings 
-    if message == '5':
+    elif message == '5':
         # closing selected holding 
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
@@ -126,7 +124,7 @@ def run(condition):
 
 
     # logout of account and shutdown client and server
-    if message == '6':
+    elif message == '6':
         print(message)
         print(f"Logging out {client}.")
         message = f'Logging out!'
@@ -147,11 +145,12 @@ s.bind(ADDRESS)
 s.listen(1)
 client, address = s.accept()
 
-# Authentication
-authentication()
+
 # Main loop to handle client requests
 while condition:
-    condition = run(condition)
+    message = client.recv(BUFSIZE)
+    message = message.decode('utf-8')
+    condition = run(message, condition)
 
 
 

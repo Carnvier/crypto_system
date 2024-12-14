@@ -4,8 +4,18 @@ import portfolio as p
 from gui import setup_gui
 
 
-
-condition = True
+def login(user_name, password):
+    message = f'login'
+    s.send(message.encode('utf-8'))
+    message = f'{user_name}, {password}'
+    s.send(message.encode('utf-8'))
+    balance = s.recv(BUFSIZE)
+    try:
+        balance = float(balance.decode('utf-8'))
+        print(f'Your current balance: {balance:.2f}')
+        return f"{user_name}, {password}, {balance}"
+    except:
+        return balance.decode('utf-8')
 
 def signup(user_name, password, deposit):
 
@@ -26,18 +36,7 @@ def signup(user_name, password, deposit):
         return None
     
 
-def login(user_name, password):
-    message = f'login'
-    s.send(message.encode('utf-8'))
-    message = f'{user_name}, {password}'
-    s.send(message.encode('utf-8'))
-    balance = s.recv(BUFSIZE)
-    try:
-        balance = float(balance.decode('utf-8'))
-        print(f'Your current balance: {balance:.2f}')
-        return f"{user_name}, {password}, {balance}"
-    except:
-        return "Error fetching account information"
+
 
 def view_account(username, password):
     message = "view_account"
