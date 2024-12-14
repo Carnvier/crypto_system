@@ -10,21 +10,25 @@ def load_account_from_db(username, password):
     
 
 def update_account_balance(username, password, action, amount):
+    '''function to pass arguments to update balance'''
     account = acc.Account(username, password)
     total = account.update_balance(action, amount)
     return total
 
 def process_trade(username, password, asset, quantity, action):
+    '''funtion to pass arguments to process trade'''
     process =  p.Portfolio()
     if action.lower().startswith('b'):
-        process.buy_asset(username, password, asset, quantity)
+        response = process.buy_asset(username, password, asset, quantity)
     elif action.lower().startswith('s'):
-        process.sell_asset(username, password, asset, quantity)
+        response = process.sell_asset(username, password, asset, quantity)
     process.save_transaction(username, asset, quantity, action)
+    return response
 
 
 
 def run(message, condition):
+    '''running function that communicates with client'''
     # authentication for login
     if message == 'login':
         message = client.recv(BUFSIZE)
@@ -80,33 +84,39 @@ def run(message, condition):
             user_name, password, action, amount = message.split(',')
             balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
             print(balance)
-            client.sendall(pickle.dumps(balance))
+            serialized_data = pickle.dumps(data)
+            client.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
+            client.sendall(serialized_data)
         except Exception as e:
             print(f'Error: {e}')
         condition = True
         return condition
 
 
-    elif message == '3':
+    elif message == 'execute_trade':
         try:
             message = client.recv(BUFSIZE)
             message = (message.decode('utf-8'))
             print(message)
             user_name, password, asset, quantity, action = message.split(',')
-            process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), int(quantity), action.strip())
+            message = process_trade(user_name.lower().strip(), password.lower().strip(), asset.title().strip(), int(quantity), action.strip())
+            client.send(message.encode('utf-8'))
         except Exception as e:
             print(f'Error: {e}')
         condition = True
         return condition
 
     #  get current holdings for specified user
-    elif message == '4':
+    elif message == 'view_holdings':
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
         print(f"Here is: \n{message}")
         user_name, password = message.split(',')
         data = db.CryptoHiveDB().read_portfolio(user_name.strip())
-        client.sendall(pickle.dumps(data))
+        print(data)
+        serialized_data = pickle.dumps(data)
+        client.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
+        client.sendall(serialized_data)
         condition = True
         return condition
     

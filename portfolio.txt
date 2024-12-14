@@ -1,4 +1,0 @@
-deezy, buy, Ethereum, 7.0, 189000.0
-deezy, sell, Ethereum, 12.0, 324000.0
-deezy, buy, Gold, 3, 84000
-deezy, sell, Silver, 5, 100000

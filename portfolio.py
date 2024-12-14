@@ -116,11 +116,11 @@ class Portfolio():
                 balance = balance - total_cost
                 account = (balance, username, password)
                 db.CryptoHiveDB().account_update_data(account)
-                return (f"Buy Transaction Success!\nCurrent Balance: {balance}\n{username.title()} Buy Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
+                return (f"Buy Transaction Success!\nCurrent Balance: {balance}\n{username} Buy Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
                 
                     
             if not account:
-                return (f"{username.title()} not found!")
+                return (f"{username} not found!")
         except Exception as e:
             return f"Error: {e}"    
         
@@ -155,11 +155,11 @@ class Portfolio():
                 account = (balance, username, password)
                 db.CryptoHiveDB().account_update_data(account)
         
-                return (f"Sell Transaction Success!\nCurrent Balance: {balance}\n {username.title()} Sell Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
+                return (f"Sell Transaction Success!\nCurrent Balance: {balance}\n {username} Sell Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
             
                             
             if not account:
-                return (f"{username.title()} not found!")
+                return (f"{username} not found!")
         except Exception as e:
             return f"Error: {e}"
          

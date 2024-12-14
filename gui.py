@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 import tkinter as tk
 from PIL import Image, ImageTk
+import os
 
 
 def setup_gui(client_functions):
@@ -36,18 +37,45 @@ def nav(username, password, app, client_functions):
     logout_button=CTkButton(master=nav_frame, text="Logout", command=lambda:logout(app, client_functions, username, password, nav_frame))
     logout_button.place(relx = 0.75, rely = 0.5, anchor="w")
 
+def load_gif(gif_path):
+    img = Image.open(gif_path)
+    frames = []
+    try:
+        while True:
+            frames.append(ImageTk.PhotoImage(img.copy()))
+            img.seek(len(frames))  # Move to the next frame
+    except EOFError:
+        pass  # End of the GIF
+    return frames
 
+# Function to update the GIF frame
+def update_gif():
+    global current_frame
+    if frames:
+        frame = frames[current_frame]
+        background_label.configure(image=frame)
+        current_frame = (current_frame + 1) % len(frames)  # Loop back to the first frame
+        root.after(100, update_gif)  # Change frame every 100 milliseconds
+
+# Function to start the main window
 def start_window(app, client_functions):
-    wallpaper_frame = CTkFrame(master=app)
+    global root, background_label, frames, current_frame
+
+    root = app  # Reference to the main application window
+
+    wallpaper_frame = CTkFrame(master=root, bg_color="#B8860B")
     wallpaper_frame.place(relx=0, rely=0, relwidth=0.5, relheight=1, anchor='nw')
 
+    gif_path = "bg.gif"  # Update with your GIF path
+    frames = load_gif(gif_path)
+    current_frame = 0
 
-    background_image = tk.PhotoImage(file="bg.gif")
-    wallpaper_frame.background_image = background_image
+    # Create a label to display the GIF
+    background_label = CTkLabel(wallpaper_frame)
+    background_label.place(relx=0, rely=0, relwidth=1, relheight=1)
 
-    # Create a label to hold the image
-    background_label = tk.Label(wallpaper_frame, image=background_image)
-    background_label.place(relwidth=1, relheight=1)
+    # Start the GIF animation
+    update_gif()
 
     title = CTkLabel(master=app, text="CryptoHive Trading Platform", font=("Helvetica", 37), text_color="gold")
     title.place(relx=0.75, rely=0.3, anchor="center")
@@ -220,8 +248,61 @@ def signup_confirmation(app, username, password, password_2nd, deposit, client_f
     except:
         signup_error = CTkLabel(master=app, text=f"{response}", font=("Helvetica", 45), text_color="red")
         signup_error.place(relx=0.75, rely=0.3, anchor="center")
+
+def home_page(username, password, app, client_functions):
+    '''Home page display function'''
+    if app.winfo_children():
+        for widget in app.winfo_children():
+            widget.destroy()
+
+    nav(username, password, app, client_functions)
+
+    asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
+    asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
+
+    graph_frame = CTkFrame(master=app, fg_color="#B8860B")
+    graph_frame.place(relx=0.25, rely=0.05, relwidth=0.8, relheight=1.02)
+
+    title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
+    title.place(relx=0.5, rely=0.1, anchor="center")
+    assets = ast.Asset().get_values()
+    
+
+    def update_prices():
+        # Clear existing labels and buttons
+        for widget in asset_frame.winfo_children():
+            if widget == graph_button or widget == asset_label:
+                widget.destroy()
+
+        y = 0.2
+        # Fetch latest asset values
+        assets = ast.Asset().get_values()  # Fetch updated values
+
+        for asset, value in assets.items():
+            asset_label = CTkLabel(asset_frame, text=f"{asset}", text_color="white", font=("Helvetica", 15))
+            asset_label.place(relx=0.1, rely=y, anchor="w")
+
+            # Create graph button
+            graph_button = CTkButton(
+                asset_frame, 
+                text=f"{value:.2f}", 
+                fg_color="darkblue", 
+                font=("Helvetica", 15), 
+                width=100, 
+                border_width=1, 
+                border_color="white", 
+                command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset)
+            )
+            graph_button.place(relx=0.9, rely=y, anchor="e")
+            y += 0.06
+
+        # Schedule the next price update
+        app.after(1000, update_prices)  # Call update_prices again after 5000 milliseconds
+
+    update_prices() 
     
 def plot_data(username, password, graph_frame, client_functions, app, asset="Bitcoin",):
+    '''Plotting a graph for specified asset'''
     if graph_frame.winfo_children():
         for widget in graph_frame.winfo_children():
             widget.destroy()
@@ -260,12 +341,16 @@ def plot_data(username, password, graph_frame, client_functions, app, asset="Bit
 
         sell_button = CTkButton(button_frame, text="SELL", text_color="white", fg_color='darkblue', command=lambda: process_transaction(username, password, asset, 'sell', graph_frame, client_functions, app))
         sell_button.pack(side=LEFT)
+    else:
+        message_label = CTkLabel(master=graph_frame, text='Market closed', font =('Helvetica', 35))
+        message_label.place(relx = 0.5, rely = 0.5, anchor='center')
+
 
 def process_transaction(username, password, asset, action, graph_frame, client_functions, app):
     transaction_frame = CTkFrame(graph_frame)
-    transaction_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.5, relheight=0.5)
+    transaction_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.75, relheight=0.5)
 
-    title_label = CTkLabel(transaction_frame, text=f"{action.upper()} {asset.upper()}", font=("Helvetica", 45))
+    title_label = CTkLabel(transaction_frame, text=f"{action.upper()} {asset.upper()}", font=("Helvetica", 42))
     title_label.place(relx=0.5, rely=0.3, anchor="center")
 
     amount_label = CTkLabel(transaction_frame, text="Enter Quantity:", font=("Helvetica", 20))
@@ -279,60 +364,23 @@ def process_transaction(username, password, asset, action, graph_frame, client_f
 
 def confirm_transaction(username, password, asset, action, amount, transaction_frame, client_functions, app, graph_frame):
     if transaction_frame.winfo_children():
-        for widget in transaction_frame.winfo_children():
+        for widget in transaction_frame.winfo_children():   
             widget.destroy()
 
     response = client_functions["execute_trade"](username, password, asset, amount, action)
     if response:
-        title =  CTkLabel(master=transaction_frame, text="Trade successfully executed", font=("Helvetica", 40))
+        title =  CTkLabel(master=transaction_frame, text="Trade", font=("Helvetica", 35))
         title.place(relx=0.5, rely=0.2, anchor="center")
 
-        message = f"{action} of {asset}. Total {amount}"
+        message = f"{response}"
         info_label = CTkLabel(master=transaction_frame, text=message, font=("Helvetica", 20))
         info_label.place(relx=0.5, rely=0.4, anchor="center")
 
         proceed_button = CTkButton(master=transaction_frame, text="Proceed", font=("Helvetica", 20), command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
         proceed_button.place(relx=0.5, rely=0.6, anchor="center") 
-
-
-def home_page(username, password, app, client_functions):
-    if app.winfo_children():
-        for widget in app.winfo_children():
-            widget.destroy()
-
-    nav(username, password, app, client_functions)
-
-    asset_frame = CTkFrame(master=app, fg_color='black', border_color="white", border_width=1, )
-    asset_frame.place(relx=-0.01, rely=-0.01, relwidth=0.25, relheight=1.02)
-
-    graph_frame = CTkFrame(master=app, fg_color="#B8860B")
-    graph_frame.place(relx=0.25, rely=0.05, relwidth=0.8, relheight=1.02)
-
-    title = CTkLabel(asset_frame, text="Assets", text_color="white", font=("Helvetica", 25))
-    title.place(relx=0.5, rely=0.1, anchor="center")
-    assets = ast.Asset().get_values()
-    y = 0.2
-
-    for asset, value in assets.items():
-        asset_label = CTkLabel(asset_frame, text=f"{asset}", text_color="white", font=("Helvetica", 15))
-        asset_label.place(relx=0.1, rely=y, anchor="w")
-        try: 
-            graph_button = CTkButton(asset_frame, text=f"{value:.2f}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
-        except:
-                graph_button = CTkButton(asset_frame, text=f"{value}", fg_color="darkblue", font=("Helvetica", 15), width = 100, border_width=1, border_color="white", command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
-        graph_button.place(relx=0.9, rely=y, anchor="e")
-        y += 0.06
-
-    
-
-def close_position(id, username, password, app, nav_frame, client_functions):
-    response = messagebox.askyesno("Close Postion", "Are you sure you want to close?")
-    if response:
-        response = client_functions["close_position"](username, password, id)
-        messagebox.showinfo("Close Position", response)
     else:
-        messagebox.showerror("Close Position", response)
-    view_holdings(app, client_functions, username, password, nav_frame)
+        messagebox.showerror("Trade", "Failed to execute trade!!!")
+
 
 def view_holdings(app, client_functions, username, password, nav_frame):
    
@@ -343,6 +391,7 @@ def view_holdings(app, client_functions, username, password, nav_frame):
     
     
     holding_frame = CTkScrollableFrame(master = app, border_color="#")
+    holding_frame.place(relx=0.5, rely=0.25, anchor="n", relwidth=0.95, relheight=0.7)
 
     data = client_functions["view_holdings"](username, password)
 
@@ -380,30 +429,51 @@ def view_holdings(app, client_functions, username, password, nav_frame):
                     # Make sure only active holdings are printed 
                 date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
                 if holding:
-                    count += 1
-                    id_label = CTkLabel(master=app, text=f"{id}", font=("Helvetica", 15))
-                    id_label.place(relx=0.05, rely=y, anchor="w")
-                    
-                    date_label = CTkLabel(master=app, text=f"{date.strftime("%Y-%m-%d %H:%M")}", font=("Helvetica", 15))
-                    date_label.place(relx=0.15, rely=y, anchor="w")
+                    row_frame = CTkFrame(master=holding_frame)
+                    row_frame.pack(fill="x", padx=5, pady=2)
 
-                    asset_label = CTkLabel(master=app, text=f"{asset}", font=("Helvetica", 15))
-                    asset_label.place(relx=0.325, rely=y, anchor="w")
+                    id_label = CTkLabel(master=row_frame, text=f"{id}", font=("Helvetica", 15))
+                    id_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
 
-                    action_label = CTkLabel(master=app, text=f"{action}", font=("Helvetica", 15))
-                    action_label.place(relx=0.45, rely=y, anchor="w")
+                    date_label = CTkLabel(master=row_frame, text=f"{date.strftime('%Y-%m-%d %H:%M')}", font=("Helvetica", 15))
+                    date_label.grid(row=0, column=1, padx=(0, 10), sticky="w")
 
-                    quantity_label = CTkLabel(master=app, text=f"{quantity}", font=("Helvetica", 15))
-                    quantity_label.place(relx=0.55, rely=y, anchor="w")
+                    asset_label = CTkLabel(master=row_frame, text=f"{asset}", font=("Helvetica", 15))
+                    asset_label.grid(row=0, column=2, padx=(0, 10), sticky="w")
 
-                    cost_label = CTkLabel(master=app, text=f"{cost}", font=("Helvetica", 15))
-                    cost_label.place(relx=0.65, rely=y, anchor="w")
+                    action_label = CTkLabel(master=row_frame, text=f"{action}", font=("Helvetica", 15))
+                    action_label.grid(row=0, column=3, padx=(0, 10), sticky="w")
 
-                    close_position_button = CTkButton(master=app, text=f"Close", font=("Helvetica", 15), command=lambda id=id: close_position(id, username, password, app, nav_frame, client_functions))
-                    close_position_button.place(relx=0.85, rely=y, anchor="w")
-                    y += 0.07
+                    quantity_label = CTkLabel(master=row_frame, text=f"{quantity}", font=("Helvetica", 15))
+                    quantity_label.grid(row=0, column=4, padx=(0, 10), sticky="w")
+
+                    cost_label = CTkLabel(master=row_frame, text=f"{cost}", font=("Helvetica", 15))
+                    cost_label.grid(row=0, column=5, padx=(0, 10), sticky="w")
+
+                    close_position_button = CTkButton(
+                        master=row_frame, 
+                        text="Close", 
+                        font=("Helvetica", 15), 
+                        command=lambda id=id: close_position(id, username, password, app, nav_frame, client_functions)
+                    )
+                    close_position_button.grid(row=0, column=6, padx=(50, 0), sticky="e")
+
+                    for col in range(7):  # Adjust according to the number of columns
+                        row_frame.grid_columnconfigure(col, weight=1)
+
+
     except Exception as e:
         print(f"Error: {e}")
+
+def close_position(id, username, password, app, nav_frame, client_functions):
+    response = messagebox.askyesno("Close Postion", "Are you sure you want to close?")
+    if response:
+        response = client_functions["close_position"](username, password, id)
+        messagebox.showinfo("Close Position", response)
+    else:
+        messagebox.showerror("Close Position", response)
+    view_holdings(app, client_functions, username, password, nav_frame)
+
 
 def account_details(app, client_functions, username, password, nav_frame):
     if app.winfo_children():    
@@ -462,6 +532,7 @@ def logout(app, client_functions, username, password, nav_frame):
     logout = messagebox.askyesno("Logout", "Are you sure you want to logout?")
     if logout:
         client_functions['logout']
+        app.quit()
         app.destroy()
 
     else: 
