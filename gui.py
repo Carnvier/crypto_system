@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 import tkinter as tk
 from PIL import Image, ImageTk
-import os
+import numpy as np
 
 
 def setup_gui(client_functions):
@@ -240,10 +240,12 @@ def home_page(username, password, app, client_functions):
 
     def update_prices():
         # Clear existing labels and buttons
-        if asset_frame:
+        try:
             for widget in asset_frame.winfo_children():
                 if widget != title:
                         widget.destroy()
+        except:
+            pass
 
         y = 0.2
         # Fetch latest asset values
@@ -268,7 +270,7 @@ def home_page(username, password, app, client_functions):
             y += 0.06
 
         # Schedule the next price update
-        app.after(1000, update_prices)  # Call update_prices again after 5000 milliseconds
+        app.after(5000, update_prices)  # Call update_prices again after 5000 milliseconds
 
     update_prices() 
     
@@ -294,7 +296,9 @@ def plot_data(username, password, graph_frame, client_functions, app, asset="Bit
         plt.title(f'{asset} Trend')
         plt.xlabel('Date and Time', fontsize=8)
         plt.ylabel('Closing Price (USD)', fontsize=14)
-        plt.xticks(rotation=90)
+        # Set x-ticks with increased spacing
+        tick_positions = np.arange(0, len(price_history.index), step=5)  # Adjust step for spacing
+        plt.xticks(tick_positions, price_history.index[tick_positions], rotation=45)
         plt.legend()
         plt.grid()
 

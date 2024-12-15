@@ -74,18 +74,7 @@ class Portfolio():
         except Exception as e:
             return f"Error: {e}"
             
-    def view_holdings(self, username, data):
-        '''Print user's current holdings'''
-        print(f"Portfolio for {username.title()}:")
-        count = 0
-        for i, line in enumerate(data):
-            id, date, user_name, action, asset, quantity, cost, holding = data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6], data[i][7]  
-            # Make sure only active holdings are printed 
-            if holding:
-                count += 1
-                print(f"{id:<5} {date:<13} {action.upper():<10} {asset:<10} {quantity:<10} {cost}")
-        if count == 0:
-            print("No holdings found.")
+    
     
     
     def buy_asset(self, username, password, asset, quantity):

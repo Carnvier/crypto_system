@@ -3,8 +3,10 @@ import time
 import portfolio as p
 from gui import setup_gui
 
- 
+
+
 def login(user_name, password):
+    '''Sends password and username to server and returns confirmation message'''
     message = f'login'
     s.send(message.encode('utf-8'))
     message = f'{user_name}, {password}'
@@ -18,7 +20,7 @@ def login(user_name, password):
         return balance.decode('utf-8')
 
 def signup(user_name, password, deposit):
-
+    '''sends signup details to server'''
     message = "signup"
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, {deposit}"
@@ -46,18 +48,9 @@ def view_account(username, password):
     response = pickle.loads(response)
     return response
 
-def view_assets():
-    assets = s.recv(BUFSIZE)
-    try:
-        assets = pickle.loads(assets)
-        print("Current assets:")
-        for asset, value in assets.items():
-            print(f"{asset:<10}: {value}")
-    except Exception as e: 
-        print(f"Error while loading: {e}")
-
 
 def add_funds(user_name, password, amount):
+    """Send deposit details to server and returns the confirmation to gui"""
     message = "2"
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, deposit, {amount}"
@@ -71,6 +64,7 @@ def add_funds(user_name, password, amount):
 
 
 def withdraw_funds(user_name, password, amount):
+    '''Send withdrawal details to server and returns the confirmation to gui'''
     message = "2"
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, withdraw, {amount}"
@@ -84,6 +78,7 @@ def withdraw_funds(user_name, password, amount):
 
 
 def execute_trade(user_name, password, asset, quantity, action):
+    '''Executing a trade on the server and returns the confirmation to gui'''
     message = "execute_trade"
     s.send(message.encode("utf-8"))
     try:
@@ -95,7 +90,7 @@ def execute_trade(user_name, password, asset, quantity, action):
         return response
     except Exception as e:
         return f'Error: {e}'
- 
+
 def view_portfolio(user_name, password):
     '''Viewing current holdings'''
     message = "view_holdings"
@@ -138,6 +133,7 @@ def close_trade(user_name, password, holding_id):
 
 
 def logout():
+    '''Requesting server to logout user'''
     confirm = input("Are you sure you want to logout?" )
     if confirm.lower().startswith("y"):
         message = "6"
@@ -145,6 +141,8 @@ def logout():
         response = s.recv(BUFSIZE)
         print("You have been logged out")
         s.close()
+
+
 
 # client-server setup
 HOST = 'localhost'
@@ -167,7 +165,7 @@ client_functions = {
     "execute_trade": execute_trade,
     "view_account": view_account,
     "view_holdings": view_portfolio,
-    "close_position": close_trade,
+    "close_position":close_trade,
     "logout": logout,
 }
 
