@@ -22,20 +22,23 @@ def setup_gui(client_functions):
 
 
 def nav(username, password, app, client_functions):
-    nav_frame =CTkFrame(master=app, height=25, width=570)
+    nav_frame =CTkFrame(master=app, height=25, width=650)
     nav_frame.place(relx=1, rely=0, anchor="ne" )
 
     charts_button=CTkButton(master=nav_frame, text="Charts", command=lambda:home_page(username, password, app, client_functions))
     charts_button.place(relx = 0.0, rely = 0.5, anchor="w")
 
     holdings_button=CTkButton(master=nav_frame, text="Holdings", command=lambda:view_holdings(app, client_functions, username, password, nav_frame))
-    holdings_button.place(relx = 0.25, rely = 0.5, anchor="w")
+    holdings_button.place(relx = 0.2, rely = 0.5, anchor="w")
+
+    transaction_button=CTkButton(master=nav_frame, text="Transactions", command=lambda:view_transactions(app, client_functions, username, password, nav_frame))
+    transaction_button.place(relx = 0.4, rely = 0.5, anchor="w")
 
     profile_button=CTkButton(master=nav_frame, text="Profile", command=lambda:account_details(app, client_functions, username, password, nav_frame))
-    profile_button.place(relx = 0.5, rely = 0.5, anchor="w")
+    profile_button.place(relx = 0.6, rely = 0.5, anchor="w")
 
     logout_button=CTkButton(master=nav_frame, text="Logout", command=lambda:logout(app, client_functions, username, password, nav_frame))
-    logout_button.place(relx = 0.75, rely = 0.5, anchor="w")
+    logout_button.place(relx = 0.8, rely = 0.5, anchor="w")
 
 
 # Function to start the main window
@@ -119,12 +122,12 @@ def login_confirmation(app, username, password, client_functions, wallpaper_fram
             proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: home_page(username, password, app, client_functions)) 
             proceed_button.place(relx=0.75, rely=0.7, anchor="center")
         except:
-            signup_error = CTkLabel(master=app, text=response, font=("Helvetica", 45), text_color="red")
+            signup_error = CTkLabel(master=app, text=response, font=("Helvetica", 30), text_color="red")
             signup_error.place(relx=0.75, rely=0.3, anchor="center")
             try_again_button = CTkButton(master=app, text="Try Again", font=("Helvetica", 20), command=lambda: login(app, client_functions, wallpaper_frame)) 
             try_again_button.place(relx=0.75, rely=0.5, anchor="center")
     else:  
-        login_error = CTkLabel(master=app, text="Failed to login please try again.", font=("Helvetica", 45), text_color="red")
+        login_error = CTkLabel(master=app, text="Failed to login please try again.", font=("Helvetica", 30), text_color="red")
         login_error.place(relx=0.75, rely=0.3, anchor="center")
         try_again_button = CTkButton(master=app, text="Try Again", font=("Helvetica", 20), command=lambda: login(app, client_functions, wallpaper_frame)) 
         try_again_button.place(relx=0.75, rely=0.5, anchor="center")
@@ -216,8 +219,10 @@ def signup_confirmation(app, username, password, password_2nd, deposit, client_f
         proceed_button = CTkButton(master=app, text="Proceed", font=("Helvetica", 20), command=lambda: login(app, client_functions, wallpaper_frame)) 
         proceed_button.place(relx=0.75, rely=0.7, anchor="center")
     except:
-        signup_error = CTkLabel(master=app, text=f"{response}", font=("Helvetica", 45), text_color="red")
+        signup_error = CTkLabel(master=app, text=f"{response}", font=("Helvetica", 22), text_color="red")
         signup_error.place(relx=0.75, rely=0.3, anchor="center")
+        try_again_button = CTkButton(master=app, text="Try Again", font=("Helvetica", 20), command=lambda: signup(app, client_functions, wallpaper_frame)) 
+        try_again_button.place(relx=0.75, rely=0.5, anchor="center")
 
 def home_page(username, password, app, client_functions):
     '''Home page display function'''
@@ -256,7 +261,7 @@ def home_page(username, password, app, client_functions):
             asset_label.place(relx=0.1, rely=y, anchor="w")
 
             # Create graph button
-            try:
+            try: 
                 graph_button = CTkButton(
                     asset_frame, 
                     text=f"{value:.2f}", 
@@ -276,11 +281,16 @@ def home_page(username, password, app, client_functions):
                     width=100, 
                     border_width=1, 
                     border_color="white", 
-                    command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
+                    command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset)
+                )
             graph_button.place(relx=0.9, rely=y, anchor="e")
             y += 0.06
 
         # Schedule the next price update
+        try:
+            app.after(1000, lambda: update_prices)  # Call update_prices again after 5000 milliseconds
+        except: 
+            print('Update Failed')
 
     update_prices() 
     
@@ -450,6 +460,71 @@ def view_holdings(app, client_functions, username, password, nav_frame):
     except Exception as e:
         print(f"Error: {e}")
 
+
+
+def view_transactions(app, client_functions, username, password, nav_frame):
+   
+    if app.winfo_children():    
+        for widget in app.winfo_children():
+            if widget != nav_frame:
+                widget.destroy()
+    
+    
+    transaction_frame = CTkScrollableFrame(master = app, border_color="#")
+    transaction_frame.place(relx=0.5, rely=0.25, anchor="n", relwidth=0.95, relheight=0.7)
+
+    data = client_functions["view_transactions"](username, password)
+
+    page_title = CTkLabel(master=app, text="Transaction History", font=("Helvetica", 45))
+    page_title.place(relx=0.5, rely=0.1, anchor="center")
+
+    id_title = CTkLabel(master=app, text="ID", font=("Helvetica",20) )
+    id_title.place(relx=0.01, rely=0.2, anchor="w")
+
+    date_title = CTkLabel(master=app, text="Date", font=("Helvetica", 20))
+    date_title.place(relx=0.25, rely=0.2, anchor="w")
+
+    details_title = CTkLabel(master=app, text="Asset", font=("Helvetica",20) )
+    details_title.place(relx=0.425, rely=0.2, anchor="w")
+
+    amount_title = CTkLabel(master=app, text="Total Cost", font=("Helvetica", 20))
+    amount_title.place(relx=0.65, rely=0.2, anchor="w")
+
+    
+
+    count = 0
+    y = 0.25
+
+    try: 
+        if data:
+            for i, line in enumerate(data):
+                id, date, user_name, details, amount = data[i][0], data[i][1], data[i][2], data[i][3], data[i][4]  
+                    # Make sure only active holdings are printed 
+                date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
+                
+                row_frame = CTkFrame(master=transaction_frame)
+                row_frame.pack(fill="x", padx=5, pady=2)
+
+                id_label = CTkLabel(master=row_frame, text=f"{id}", font=("Helvetica", 15))
+                id_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
+
+                date_label = CTkLabel(master=row_frame, text=f"{date.strftime('%Y-%m-%d %H:%M')}", font=("Helvetica", 15))
+                date_label.grid(row=0, column=1, padx=(0, 10), sticky="w")
+
+                details_label = CTkLabel(master=row_frame, text=f"{details}", font=("Helvetica", 15))
+                details_label.grid(row=0, column=2, padx=(0, 10), sticky="nsew")
+
+                amount_label = CTkLabel(master=row_frame, text=f"{amount}", font=("Helvetica", 15))
+                amount_label.grid(row=0, column=3, padx=(0, 10), sticky="e")
+
+                for col in range(7):  # Adjust according to the number of columns
+                    row_frame.grid_columnconfigure(col, minsize=260)
+
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 def close_position(id, username, password, app, nav_frame, client_functions):
     response = messagebox.askyesno("Close Postion", "Are you sure you want to close?")
     if response:
@@ -477,7 +552,7 @@ def account_details(app, client_functions, username, password, nav_frame):
     username_label = CTkLabel(master=app, text=f"Username: {user_name}", font=("Helvetica", 30))
     username_label.place(relx=0.2, rely=0.3, anchor="center")
 
-    balance = CTkLabel(master=app, text=f"Balance: {balance}", font=("Helvetica", 30))
+    balance = CTkLabel(master=app, text=f"Balance: {balance:.2f}", font=("Helvetica", 30))
     balance.place(relx=0.75, rely=0.3, anchor="center")
 
     withdraw_label = CTkLabel(master=app, text="Withdraw", font=("Helvetica", 25))
