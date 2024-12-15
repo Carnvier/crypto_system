@@ -105,7 +105,7 @@ class Portfolio():
                 balance = balance - total_cost
                 account = (balance, username, password)
                 db.CryptoHiveDB().account_update_data(account)
-                return (f"Buy Transaction Success!\nCurrent Balance: {balance}\n{username} Buy Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
+                return (f"{asset} Buy Transaction Success!\nCurrent Balance: {balance}")
                 
                     
             if not account:
@@ -144,7 +144,7 @@ class Portfolio():
                 account = (balance, username, password)
                 db.CryptoHiveDB().account_update_data(account)
         
-                return (f"Sell Transaction Success!\nCurrent Balance: {balance}\n {username} Sell Transaction Summary: \n{asset} {quantity} {asset_value} {total_cost}")
+                return (f"{asset} Sell Transaction Success!\nCurrent Balance: {balance}")
             
                             
             if not account:
@@ -157,7 +157,8 @@ class Portfolio():
         '''Save transaction information of either sell or purchase of asset'''
         try:
             amount = float(quantity * self.assets[asset])
-            transaction = (username, action, asset, quantity, amount)
+            details = f"{action} {asset} {quantity}"
+            transaction = (username, details, amount)
             db.CryptoHiveDB().transactions_insert_data(transaction)
             return "Transaction saved successfully"
         except:

@@ -51,7 +51,7 @@ def view_account(username, password):
 
 def add_funds(user_name, password, amount):
     """Send deposit details to server and returns the confirmation to gui"""
-    message = "2"
+    message = "deposit_withdraw"
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, deposit, {amount}"
     s.send(message.encode("utf-8"))
@@ -65,7 +65,7 @@ def add_funds(user_name, password, amount):
 
 def withdraw_funds(user_name, password, amount):
     '''Send withdrawal details to server and returns the confirmation to gui'''
-    message = "2"
+    message = "deposit_withdraw"
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, withdraw, {amount}"
     s.send(message.encode("utf-8"))
@@ -116,7 +116,7 @@ def view_portfolio(user_name, password):
     
 def close_trade(user_name, password, holding_id):
     ''''CLosing specified current holding sending data to server and display response from server'''
-    message = "5"
+    message = "close_trade"
     s.send(message.encode("utf-8"))
     message =  f'{user_name}, {password}, {holding_id}'
     s.send(message.encode("utf-8"))
@@ -130,13 +130,36 @@ def close_trade(user_name, password, holding_id):
     except:
         return response
     
+def view_transactions(user_name, password):
+    '''Requesting server to view user's transaction history'''
+    message = "view_transactions"
+    s.send(message.encode("utf-8"))
+    message = f'{user_name}, {password}'
+    s.send(message.encode("utf-8"))
+    length_bytes = s.recv(4)
+    if not length_bytes:
+        return None
+    length = int.from_bytes(length_bytes, byteorder='big')
+
+    data = bytearray()
+    while len(data) < length:
+        packet = s.recv(min(length - len(data), 4096))  # Receive in chunks of 4096 bytes
+        if not packet:
+            break
+        data.extend(packet)
+    try:
+        data = pickle.loads(data)
+        return data
+    except Exception as e:
+        return f"Error while loading: {e}"
+    
 
 
 def logout():
     '''Requesting server to logout user'''
     confirm = input("Are you sure you want to logout?" )
     if confirm.lower().startswith("y"):
-        message = "6"
+        message = "logout"
         s.send(message.encode("utf-8"))
         response = s.recv(BUFSIZE)
         print("You have been logged out")
@@ -166,6 +189,7 @@ client_functions = {
     "view_account": view_account,
     "view_holdings": view_portfolio,
     "close_position":close_trade,
+    "view_transactions": view_transactions,
     "logout": logout,
 }
 

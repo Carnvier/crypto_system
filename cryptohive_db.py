@@ -42,9 +42,7 @@ class CryptoHiveDB():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                         username TEXT,
-                        action TEXT NOT NULL,
-                        asset TEXT NOT NULL,
-                        quantity INTEGER NOT NULL,
+                        details TEXT NOT NULL,
                         amount FLOAT NOT NULL,
                         FOREIGN KEY (username) REFERENCES Accounts(username)
                 )
@@ -71,7 +69,7 @@ class CryptoHiveDB():
 
         def transactions_insert_data(self, transaction):
                 '''Insert user transaction data into database'''
-                self.c.execute("INSERT INTO Transactions (username, action, asset, quantity, amount) VALUES (?, ?, ?, ?, ?)", transaction)
+                self.c.execute("INSERT INTO Transactions (username, details, amount) VALUES (?, ?, ?)", transaction)
                 self.conn.commit()
                 return
 
@@ -93,11 +91,8 @@ class CryptoHiveDB():
 
         def read_account(self, username, password):
                 '''Read user account data'''
-                try:
-                        self.c.execute("SELECT * FROM Accounts WHERE username = ? and password = ?", (username, password))
-                        account =  self.c.fetchall()
-                except Exception as e:
-                        account = 'Invalid username or password'
+                self.c.execute("SELECT * FROM Accounts WHERE username = ? and password = ?", (username, password))
+                account = self.c.fetchall()
                 return account
 
 

@@ -15,6 +15,7 @@ def update_account_balance(username, password, action, amount):
     total = account.update_balance(action, amount)
     return total
 
+
 def process_trade(username, password, asset, quantity, action):
     '''funtion to pass arguments to process trade'''
     process =  p.Portfolio()
@@ -24,7 +25,6 @@ def process_trade(username, password, asset, quantity, action):
         response = process.sell_asset(username, password, asset, quantity)
     process.save_transaction(username, asset, quantity, action)
     return response
-
 
 
 def run(message, condition):
@@ -42,9 +42,11 @@ def run(message, condition):
             client.send(response.encode('utf-8'))
         # if no account balance send an error message
         except:
-            client.send(response.encode('utf-8'))
+            message = 'Invalid username or password'
+            client.send(message.encode('utf-8'))
         condition = True
         return condition
+
 
     # creating new account
     elif message == 'signup':
@@ -58,16 +60,7 @@ def run(message, condition):
         return condition
 
 
-    elif message == '1':
-        try:
-            current_assets =  ast.Asset().get_values()
-            print(current_assets)
-            client.sendall(pickle.dumps(current_assets))
-        except Exception as e:
-            print(f'Error: {e}')
-        condition = True
-        return condition
-
+    # view user account
     elif message == "view_account":
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
@@ -77,7 +70,8 @@ def run(message, condition):
         condition = True
         return condition
 
-    elif message == '2':
+    # deposit or withdraw funds from account
+    elif message == 'deposit_withdraw':
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
         try:
@@ -92,7 +86,7 @@ def run(message, condition):
         condition = True
         return condition
 
-
+    # executing trade for user 
     elif message == 'execute_trade':
         try:
             message = client.recv(BUFSIZE)
@@ -122,7 +116,7 @@ def run(message, condition):
     
     
     # close holdings 
-    elif message == '5':
+    elif message == 'close_trade':
         # closing selected holding 
         message = client.recv(BUFSIZE)
         message = message.decode('utf-8')
@@ -134,10 +128,24 @@ def run(message, condition):
         client.send(response.encode('utf-8'))
         condition = True
         return condition
+    
+    elif message == 'view_transactions':
+        # view all transactions for specified user
+        message = client.recv(BUFSIZE)
+        message = message.decode('utf-8')
+        print(f"Here are: \n{message}")
+        user_name, password = message.split(',')
+        data = db.CryptoHiveDB().read_transactions(user_name.strip())
+        print(data)
+        serialized_data = pickle.dumps(data)
+        client.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
+        client.sendall(serialized_data)
+        condition = True
+        return condition
 
 
     # logout of account and shutdown client and server
-    elif message == '6':
+    elif message == 'logout':
         print(message)
         print(f"Logging out {client}.")
         message = f'Logging out!'
@@ -169,7 +177,3 @@ while condition:
 
 
 
-
-
-print(load_account_from_db('ghost', 'ghost12345'))
-print(db.CryptoHiveDB().read_portfolio('ghost'))

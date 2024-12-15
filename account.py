@@ -53,14 +53,19 @@ class Account():
                 initial_deposit = float(initial_deposit)
                 if action.startswith('d'):
                     balance = self.deposit(amount, initial_deposit)
+                    details = f"Deposit of {amount}"
+                    transaction = (username, details, amount)
+                    db.CryptoHiveDB().transactions_insert_data(transaction)
                 elif action.startswith('w'):
+                    details = f'Withdraw of {amount}'
                     balance = self.withdraw(amount, initial_deposit)
+                    transaction = (username, details, amount)
+                    db.CryptoHiveDB().transactions_insert_data(transaction)
                 else:
                     print(f"{action.title()} not found!")    
 
-            else:
-                print("Account not found!")
-                return 
+            else: 
+                return "Account not found!"
 
             return balance
         except Exception as e:

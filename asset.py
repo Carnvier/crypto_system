@@ -13,12 +13,6 @@ class Asset():
             }
         return assets      
 
-    def view_assets(self):
-        assets = self.get_values()
-        print("Current assets:")
-        for asset, value in assets.items():
-            print(f"{asset:<10}: {value}")
-            
 
 
 
