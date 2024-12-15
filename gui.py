@@ -37,25 +37,6 @@ def nav(username, password, app, client_functions):
     logout_button=CTkButton(master=nav_frame, text="Logout", command=lambda:logout(app, client_functions, username, password, nav_frame))
     logout_button.place(relx = 0.75, rely = 0.5, anchor="w")
 
-def load_gif(gif_path):
-    img = Image.open(gif_path)
-    frames = []
-    try:
-        while True:
-            frames.append(ImageTk.PhotoImage(img.copy()))
-            img.seek(len(frames))  # Move to the next frame
-    except EOFError:
-        pass  # End of the GIF
-    return frames
-
-# Function to update the GIF frame
-def update_gif():
-    global current_frame
-    if frames:
-        frame = frames[current_frame]
-        background_label.configure(image=frame)
-        current_frame = (current_frame + 1) % len(frames)  # Loop back to the first frame
-        root.after(100, update_gif)  # Change frame every 100 milliseconds
 
 # Function to start the main window
 def start_window(app, client_functions):
@@ -63,19 +44,8 @@ def start_window(app, client_functions):
 
     root = app  # Reference to the main application window
 
-    wallpaper_frame = CTkFrame(master=root, bg_color="#B8860B")
+    wallpaper_frame = CTkFrame(master=root, fg_color="#B8860B")
     wallpaper_frame.place(relx=0, rely=0, relwidth=0.5, relheight=1, anchor='nw')
-
-    gif_path = "bg.gif"  # Update with your GIF path
-    frames = load_gif(gif_path)
-    current_frame = 0
-
-    # Create a label to display the GIF
-    background_label = CTkLabel(wallpaper_frame)
-    background_label.place(relx=0, rely=0, relwidth=1, relheight=1)
-
-    # Start the GIF animation
-    update_gif()
 
     title = CTkLabel(master=app, text="CryptoHive Trading Platform", font=("Helvetica", 37), text_color="gold")
     title.place(relx=0.75, rely=0.3, anchor="center")
@@ -270,9 +240,10 @@ def home_page(username, password, app, client_functions):
 
     def update_prices():
         # Clear existing labels and buttons
-        for widget in asset_frame.winfo_children():
-            if widget == graph_button or widget == asset_label:
-                widget.destroy()
+        if asset_frame:
+            for widget in asset_frame.winfo_children():
+                if widget != title:
+                        widget.destroy()
 
         y = 0.2
         # Fetch latest asset values
@@ -320,10 +291,10 @@ def plot_data(username, password, graph_frame, client_functions, app, asset="Bit
         # Create a line plot
         plt.figure(figsize=(10, 5))
         plt.plot(price_history.index, price_history['Close'], label=f'{assets[asset]}', color='gold', linewidth=2)
-        plt.title(f'{asset} Closing Prices Over the Last 30 Days')
-        plt.xlabel('Date and Time')
-        plt.ylabel('Closing Price (USD)')
-        plt.xticks(rotation=45)
+        plt.title(f'{asset} Trend')
+        plt.xlabel('Date and Time', fontsize=8)
+        plt.ylabel('Closing Price (USD)', fontsize=14)
+        plt.xticks(rotation=90)
         plt.legend()
         plt.grid()
 
@@ -436,19 +407,19 @@ def view_holdings(app, client_functions, username, password, nav_frame):
                     id_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
 
                     date_label = CTkLabel(master=row_frame, text=f"{date.strftime('%Y-%m-%d %H:%M')}", font=("Helvetica", 15))
-                    date_label.grid(row=0, column=1, padx=(0, 10), sticky="w")
+                    date_label.grid(row=0, column=1, padx=(0, 10), sticky="e")
 
                     asset_label = CTkLabel(master=row_frame, text=f"{asset}", font=("Helvetica", 15))
-                    asset_label.grid(row=0, column=2, padx=(0, 10), sticky="w")
+                    asset_label.grid(row=0, column=2, padx=(0, 10), sticky="e")
 
                     action_label = CTkLabel(master=row_frame, text=f"{action}", font=("Helvetica", 15))
-                    action_label.grid(row=0, column=3, padx=(0, 10), sticky="w")
+                    action_label.grid(row=0, column=3, padx=(0, 10), sticky="nsew")
 
                     quantity_label = CTkLabel(master=row_frame, text=f"{quantity}", font=("Helvetica", 15))
-                    quantity_label.grid(row=0, column=4, padx=(0, 10), sticky="w")
+                    quantity_label.grid(row=0, column=4, padx=(0, 10), sticky="nsew")
 
-                    cost_label = CTkLabel(master=row_frame, text=f"{cost}", font=("Helvetica", 15))
-                    cost_label.grid(row=0, column=5, padx=(0, 10), sticky="w")
+                    cost_label = CTkLabel(master=row_frame, text=f"{cost:.2f}", font=("Helvetica", 15))
+                    cost_label.grid(row=0, column=5, padx=(0, 10), sticky="e")
 
                     close_position_button = CTkButton(
                         master=row_frame, 
@@ -459,7 +430,7 @@ def view_holdings(app, client_functions, username, password, nav_frame):
                     close_position_button.grid(row=0, column=6, padx=(50, 0), sticky="e")
 
                     for col in range(7):  # Adjust according to the number of columns
-                        row_frame.grid_columnconfigure(col, weight=1)
+                        row_frame.grid_columnconfigure(col, minsize=175)
 
 
     except Exception as e:
