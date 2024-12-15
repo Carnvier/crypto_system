@@ -31,8 +31,7 @@ class Account():
         '''Withdrawing specified amount from account'''
         try:
             if amount > initial_deposit:
-                print("Withdrawal failed insufficient funds!!!")
-                return
+                return "Withdrawal failed insufficient funds!!!"
             
             self.balance = float(initial_deposit - amount)
             account = (self.balance, self.username, self.password)

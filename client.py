@@ -55,12 +55,13 @@ def add_funds(user_name, password, amount):
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, deposit, {amount}"
     s.send(message.encode("utf-8"))
+    balance = s.recv(BUFSIZE)
     try:
-        balance = s.recv(BUFSIZE)
         balance = pickle.loads(balance)
         return(f"Funds successfully deposited Your new balance is: {balance:.2f}")
     except Exception as e:
-        return(f"Error: {e}")
+        balance = balance.decode("utf-8")
+        return(f'{balance}') 
 
 
 def withdraw_funds(user_name, password, amount):
@@ -69,12 +70,14 @@ def withdraw_funds(user_name, password, amount):
     s.send(message.encode("utf-8"))
     message = f"{user_name}, {password}, withdraw, {amount}"
     s.send(message.encode("utf-8"))
+    balance = s.recv(BUFSIZE)
     try:
-        balance = s.recv(BUFSIZE)
         balance = pickle.loads(balance)
-        return(f"Funds successfully withdrawnYour new balance is: {balance:.2f}")
-    except Exception as e:
-        return(f"Error: {e}")
+        return(f"Funds successfully withdrawn. Your new balance is: {balance:.2f}")
+    except:
+        balance = balance.decode("utf-8")
+        print (balance)
+        return(f'{balance}')
 
 
 def execute_trade(user_name, password, asset, quantity, action):

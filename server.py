@@ -74,15 +74,14 @@ def run(message, condition):
     elif message == 'deposit_withdraw':
         message = client.recv(BUFSIZE)
         message = (message.decode('utf-8'))
-        try:
-            user_name, password, action, amount = message.split(',')
-            balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
-            print(balance)
-            serialized_data = pickle.dumps(data)
-            client.sendall(len(serialized_data).to_bytes(4, byteorder='big'))
+        user_name, password, action, amount = message.split(',')
+        balance = update_account_balance(user_name.lower().strip(), password.lower().strip(), action.lower().strip(), float(amount.strip()))
+        print(balance)
+        if type(balance) == int or type(balance) == float:
+            serialized_data = pickle.dumps(balance)
             client.sendall(serialized_data)
-        except Exception as e:
-            print(f'Error: {e}')
+        else:
+            client.send(balance.encode('utf-8'))
         condition = True
         return condition
 

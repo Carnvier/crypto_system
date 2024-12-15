@@ -256,21 +256,31 @@ def home_page(username, password, app, client_functions):
             asset_label.place(relx=0.1, rely=y, anchor="w")
 
             # Create graph button
-            graph_button = CTkButton(
-                asset_frame, 
-                text=f"{value:.2f}", 
-                fg_color="darkblue", 
-                font=("Helvetica", 15), 
-                width=100, 
-                border_width=1, 
-                border_color="white", 
-                command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset)
-            )
+            try:
+                graph_button = CTkButton(
+                    asset_frame, 
+                    text=f"{value:.2f}", 
+                    fg_color="darkblue", 
+                    font=("Helvetica", 15), 
+                    width=100, 
+                    border_width=1, 
+                    border_color="white", 
+                    command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset)
+                )
+            except:
+                graph_button = CTkButton(
+                    asset_frame, 
+                    text=f"{value}", 
+                    fg_color="darkblue", 
+                    font=("Helvetica", 15), 
+                    width=100, 
+                    border_width=1, 
+                    border_color="white", 
+                    command=lambda asset=asset: plot_data(username, password, graph_frame, client_functions, app, asset))
             graph_button.place(relx=0.9, rely=y, anchor="e")
             y += 0.06
 
         # Schedule the next price update
-        app.after(5000, update_prices)  # Call update_prices again after 5000 milliseconds
 
     update_prices() 
     
@@ -455,9 +465,8 @@ def account_details(app, client_functions, username, password, nav_frame):
         for widget in app.winfo_children():
             if widget != nav_frame:
                 widget.destroy()
-
-    try:
-        response = client_functions["view_account"](username, password)   
+    response = client_functions["view_account"](username, password)
+    try:   
         user_name, password, balance = response[0][1], response[0][2], response[0][3]
     except:
         messagebox.showerror("Error", f"{response}")
@@ -465,7 +474,7 @@ def account_details(app, client_functions, username, password, nav_frame):
     page_title = CTkLabel(master=app, text="Account Details", font=("Helvetica", 45))
     page_title.place(relx=0.5, rely=0.15, anchor="center")
 
-    username_label = CTkLabel(master=app, text=f"Username: {username}", font=("Helvetica", 30))
+    username_label = CTkLabel(master=app, text=f"Username: {user_name}", font=("Helvetica", 30))
     username_label.place(relx=0.2, rely=0.3, anchor="center")
 
     balance = CTkLabel(master=app, text=f"Balance: {balance}", font=("Helvetica", 30))
@@ -483,10 +492,10 @@ def account_details(app, client_functions, username, password, nav_frame):
     deposit_amount_entry = CTkEntry(master=app, )
     deposit_amount_entry.place(relx=0.75, rely=0.6, anchor="center")
 
-    withdraw_button = CTkButton(master=app, text="Withdraw", font=("Helvetica", 20), command=lambda : deposit_withdraw(username, password, "withdraw", client_functions, app, nav_frame, withdraw_amount_entry.get()))
+    withdraw_button = CTkButton(master=app, text="Withdraw", font=("Helvetica", 20), command=lambda : deposit_withdraw(user_name, password, "withdraw", client_functions, app, nav_frame, withdraw_amount_entry.get()))
     withdraw_button.place(relx=0.25, rely=0.7, anchor="center")
 
-    deposit_button = CTkButton(master=app, text="Deposit", font=("Helvetica", 20), command=lambda : deposit_withdraw(username, password, 'deposit', client_functions, app, nav_frame, deposit_amount_entry.get()))
+    deposit_button = CTkButton(master=app, text="Deposit", font=("Helvetica", 20), command=lambda : deposit_withdraw(user_name, password, 'deposit', client_functions, app, nav_frame, deposit_amount_entry.get()))
     deposit_button.place(relx=0.75, rely=0.7, anchor="center")
 
 
